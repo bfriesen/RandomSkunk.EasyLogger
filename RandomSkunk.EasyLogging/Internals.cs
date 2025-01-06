@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -21,12 +20,12 @@ internal static class StringBuilderPool
     private static readonly ConcurrentBag<StringBuilder> _pool = [];
 
     public static StringBuilder Get() =>
-        Debugger.IsAttached || !_pool.TryTake(out var sb) ? new StringBuilder() : sb;
+        _pool.TryTake(out var sb) ? sb : new StringBuilder();
 
     public static string ReturnToPool(this StringBuilder sb)
     {
         var str = sb.ToString();
-        if (!Debugger.IsAttached && sb.Capacity <= 256)
+        if (sb.Capacity <= 256)
         {
             sb.Length = 0;
             _pool.Add(sb);
@@ -118,8 +117,13 @@ internal static class TypeExtensions
 internal static class TupleExtensions
 {
     public static IEnumerable<KeyValuePair<string, object>> ToKeyValuePairs(
-        this IEnumerable<(string Key, object Value)> attributes) =>
-        attributes
+        this IEnumerable<(string Key, object Value)> attributes)
+    {
+        if (attributes is null)
+            return [];
+
+        return attributes
             .Where(x => x.Key is not null)
             .Select(x => new KeyValuePair<string, object>(x.Key, x.Value));
+    }
 }

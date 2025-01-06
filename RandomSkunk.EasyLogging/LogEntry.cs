@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 
@@ -7,6 +9,7 @@ namespace RandomSkunk.EasyLogging;
 /// <summary>
 /// Defines a log event.
 /// </summary>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct LogEntry
 {
     /// <summary>
@@ -60,6 +63,25 @@ public readonly struct LogEntry
     /// The exception related to the entry.
     /// </summary>
     public Exception? Exception { get; }
+
+    /// <summary>
+    /// The entry to be written. Can be also an object.
+    /// </summary>
+    public object? State => Attributes.State;
+
+    /// <summary>
+    /// A collection of objects that represent a logger's current scope at the time of a log event.
+    /// The first object in the collection represents the logger's current scope, the second object
+    /// represents its parent scope, the third represents its grandparent scope, and so on.
+    /// </summary>
+    public IEnumerable<object> Scope
+    {
+        get
+        {
+            for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+                yield return scope.State;
+        }
+    }
 
     /// <summary>
     /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
@@ -421,35 +443,57 @@ public readonly struct LogEntry
     public override string ToString()
     {
         var sb = StringBuilderPool.Get();
-        sb.Append("{\n LogLevel = ").Append(LogLevel);
+        Append(sb, LogLevel, EventId, GetMessage(), Attributes.State, Attributes.Scope, Exception);
+        return sb.ReturnToPool();
+    }
 
-        if (EventId.Id != 0)
-            sb.Append(",\n EventId = ").Append(EventId);
+    private string GetDebuggerDisplay()
+    {
+        var sb = new StringBuilder();
+        Append(sb, LogLevel, EventId, GetMessage(), Attributes.State, Attributes.Scope, Exception);
+        return sb.ToString();
+    }
 
-        var message = GetMessage();
+    private static void Append(
+        StringBuilder sb,
+        LogLevel logLevel,
+        EventId eventId,
+        string? message,
+        object? state,
+        ILoggerScope? loggerScope,
+        Exception? exception)
+    {
+        sb.Append('{').AppendLine().Append(" LogLevel = ").Append(logLevel);
+
+        if (eventId.Id != 0)
+        {
+            sb.Append(',').AppendLine().Append(" EventId = ").Append(eventId.Id);
+            if (!string.IsNullOrWhiteSpace(eventId.Name))
+                sb.Append(" (").Append(eventId.Name).Append(')');
+        }
+
         if (!string.IsNullOrWhiteSpace(message))
-            sb.Append(",\n Message = ").Append(message);
+            sb.Append(',').AppendLine().Append(" Message = ").Append(message);
         else
             message = null; // Normalize empty and whitespace message strings to null.
 
-        if (Attributes.State is not null)
-            sb.Append(",\n State = ").AppendState(Attributes.State, skipStateStringIfEqualTo: message);
+        if (state is not null)
+            sb.Append(',').AppendLine().Append(" State = ").AppendState(state, skipStateStringIfEqualTo: message);
 
-        if (Attributes.Scope is not null)
+        if (loggerScope is not null)
         {
-            for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+            for (var scope = loggerScope; scope is not null; scope = scope.ParentScope)
             {
-                if (ReferenceEquals(scope, Attributes.Scope))
-                    sb.Append(",\n Scope = ").AppendState(scope.State);
+                if (ReferenceEquals(scope, loggerScope))
+                    sb.Append(',').AppendLine().Append(" Scope = ").AppendState(scope.State);
                 else
-                    sb.Append(",\n ParentScope = ").AppendState(scope.State);
+                    sb.Append(',').AppendLine().Append(" ParentScope = ").AppendState(scope.State);
             }
         }
 
-        if (Exception is not null)
-            sb.Append(",\n Exception = ").Append(Exception);
+        if (exception is not null)
+            sb.Append(',').AppendLine().Append(" Exception = ").Append(exception);
 
-        sb.Append("\n}");
-        return sb.ReturnToPool();
+        sb.Append(' ').AppendLine().Append('}');
     }
 }

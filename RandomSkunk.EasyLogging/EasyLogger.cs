@@ -35,12 +35,24 @@ public class EasyLogger : ILogger
     public bool IncludeScopes { get; init; } = true;
 
     /// <summary>
+    /// Gets a collection that represents the logger's current scope stack.
+    /// </summary>
+    public IEnumerable<object> CurrentScope
+    {
+        get
+        {
+            for (var scope = _currentScope.Value; scope is not null; scope = scope.ParentScope)
+                yield return scope.State;
+        }
+    }
+
+    /// <summary>
     /// When overridden in a derived class, writes the specified log entry. The base virtual method
     /// does nothing.
     /// </summary>
     /// <remarks>
     /// This method is called by <see cref="EasyLogger"/>'s <see cref="Log"/> method after
-    /// verifying that <see cref="IsEnabled"/> is <see langword="true"/>.
+    /// verifying that <see cref="IsEnabled"/> is <see langword="true"/> for the given log level.
     /// </remarks>
     /// <param name="logEntry">The log entry to write.</param>
     public virtual void WriteLogEntry(LogEntry logEntry)
@@ -68,7 +80,13 @@ public class EasyLogger : ILogger
     public bool IsEnabled(LogLevel logLevel) =>
         logLevel >= _minimumLogLevel && logLevel < LogLevel.None;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Begins a logical operation scope by pushing the specified state onto the logger's scope
+    /// stack.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state to begin scope for.</typeparam>
+    /// <param name="state"></param>
+    /// <returns>An object that, when disposed, pops the state off the logger's scope stack.</returns>
     public IDisposable? BeginScope<TState>(TState state)
         where TState : notnull
     {
