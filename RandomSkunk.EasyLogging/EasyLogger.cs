@@ -3,6 +3,12 @@ using Microsoft.Extensions.Logging;
 
 namespace RandomSkunk.EasyLogging;
 
+#if NET7_0_OR_GREATER
+using static ArgumentNullException;
+#else
+using static ThrowHelper;
+#endif
+
 /// <summary>
 /// A simple, low-allocation logger.
 /// </summary>
@@ -15,7 +21,8 @@ public class EasyLogger : ILogger
     /// <summary>
     /// Gets or sets the minimum log level that the logger should write.
     /// </summary>
-    /// <remarks>Default value is <see cref="LogLevel.Information"/>.</remarks>
+    /// <remarks>Default value is <see cref="Microsoft.Extensions.Logging.LogLevel.Information"/>.
+    /// </remarks>
     public LogLevel LogLevel
     {
         get => _minimumLogLevel;
@@ -90,7 +97,7 @@ public class EasyLogger : ILogger
     public IDisposable? BeginScope<TState>(TState state)
         where TState : notnull
     {
-        ArgumentNullException.ThrowIfNull(state);
+        ThrowIfNull(state);
 
         if (IncludeScopes)
             return _currentScope.Value = new Scope(state, this);

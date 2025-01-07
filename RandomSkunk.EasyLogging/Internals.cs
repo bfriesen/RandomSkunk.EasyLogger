@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -109,7 +110,7 @@ internal static class TypeExtensions
             type,
             t =>
             {
-                var toStringMethod = t.GetMethod(nameof(ToString), _publicInstance, Type.EmptyTypes)!;
+                var toStringMethod = t.GetMethod(nameof(ToString), _publicInstance, null, Type.EmptyTypes, null)!;
                 return toStringMethod.DeclaringType != _objectType;
             });
 }
@@ -127,3 +128,16 @@ internal static class TupleExtensions
             .Select(x => new KeyValuePair<string, object>(x.Key, x.Value));
     }
 }
+
+#if !NET7_0_OR_GREATER
+internal static class ThrowHelper
+{
+    public static void ThrowIfNull([NotNull] object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+    {
+        if (argument is null)
+        {
+            throw new ArgumentNullException(paramName);
+        }
+    }
+}
+#endif

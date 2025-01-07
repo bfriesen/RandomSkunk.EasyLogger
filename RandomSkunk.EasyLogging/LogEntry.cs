@@ -6,6 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace RandomSkunk.EasyLogging;
 
+#if NET7_0_OR_GREATER
+using static ArgumentNullException;
+#else
+using static ThrowHelper;
+#endif
+
 /// <summary>
 /// Defines a log event.
 /// </summary>
@@ -30,7 +36,7 @@ public readonly struct LogEntry
         LogAttributes attributes,
         Exception? exception)
     {
-        ArgumentNullException.ThrowIfNull(getMessage);
+        ThrowIfNull(getMessage);
 
         LogLevel = logLevel;
         EventId = eventId;
@@ -84,32 +90,37 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
+    /// Whether the log entry was made at <see cref="Microsoft.Extensions.Logging.LogLevel.Trace"/>.
     /// </summary>
     public bool IsTrace() => HasLogLevel(LogLevel.Trace);
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Debug"/>.
+    /// Whether the log entry was made at
+    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Debug"/>.
     /// </summary>
     public bool IsDebug() => HasLogLevel(LogLevel.Debug);
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Information"/>.
+    /// Whether the log entry was made at
+    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Information"/>.
     /// </summary>
     public bool IsInformation() => HasLogLevel(LogLevel.Information);
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Warning"/>.
+    /// Whether the log entry was made at
+    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Warning"/>.
     /// </summary>
     public bool IsWarning() => HasLogLevel(LogLevel.Warning);
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Error"/>.
+    /// Whether the log entry was made at
+    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Error"/>.
     /// </summary>
     public bool IsError() => HasLogLevel(LogLevel.Error);
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
+    /// Whether the log entry was made at
+    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Trace"/>.
     /// </summary>
     public bool IsCritical() => HasLogLevel(LogLevel.Critical);
 
@@ -126,7 +137,7 @@ public readonly struct LogEntry
     /// match.</param>
     public bool HasLogLevel(Func<LogLevel, bool> logLevelPredicate)
     {
-        ArgumentNullException.ThrowIfNull(logLevelPredicate);
+        ThrowIfNull(logLevelPredicate);
 
         return logLevelPredicate(LogLevel);
     }
@@ -144,7 +155,7 @@ public readonly struct LogEntry
     /// match.</param>
     public bool HasEventId(Func<EventId, bool> eventIdPredicate)
     {
-        ArgumentNullException.ThrowIfNull(eventIdPredicate);
+        ThrowIfNull(eventIdPredicate);
 
         return eventIdPredicate(EventId);
     }
@@ -155,14 +166,20 @@ public readonly struct LogEntry
     /// <param name="expectedMessage">The message to check.</param>
     public bool HasMessage(string expectedMessage)
     {
-        ArgumentNullException.ThrowIfNull(expectedMessage);
+        ThrowIfNull(expectedMessage);
 
         return string.Equals(GetMessage(), expectedMessage);
     }
 
+    /// <summary>
+    /// Whether the log entry has the specified message.
+    /// </summary>
+    /// <param name="expectedMessage">The message to check.</param>
+    /// <param name="stringComparison">One of the enumeration values that specifies the rules for
+    /// the comparison.</param>
     public bool HasMessage(string expectedMessage, StringComparison stringComparison)
     {
-        ArgumentNullException.ThrowIfNull(expectedMessage);
+        ThrowIfNull(expectedMessage);
 
         return string.Equals(GetMessage(), expectedMessage, stringComparison);
     }
@@ -174,7 +191,7 @@ public readonly struct LogEntry
     /// match.</param>
     public bool HasMessage(Func<string, bool> messagePredicate)
     {
-        ArgumentNullException.ThrowIfNull(messagePredicate);
+        ThrowIfNull(messagePredicate);
 
         return messagePredicate(GetMessage());
     }
@@ -185,7 +202,7 @@ public readonly struct LogEntry
     /// <param name="regexPattern">The regular expression pattern to match.</param>
     public bool HasMessageMatching([StringSyntax(nameof(Regex))] string regexPattern)
     {
-        ArgumentNullException.ThrowIfNull(regexPattern);
+        ThrowIfNull(regexPattern);
 
         return Regex.IsMatch(GetMessage(), regexPattern);
     }
@@ -200,7 +217,7 @@ public readonly struct LogEntry
         [StringSyntax(nameof(Regex))] string regexPattern,
         RegexOptions regexOptions)
     {
-        ArgumentNullException.ThrowIfNull(regexPattern);
+        ThrowIfNull(regexPattern);
 
         return Regex.IsMatch(GetMessage(), regexPattern, regexOptions);
     }
@@ -211,7 +228,7 @@ public readonly struct LogEntry
     /// <param name="key">The key to match.</param>
     public bool HasAttribute(string key)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ThrowIfNull(key);
 
         foreach (var attribute in Attributes)
         {
@@ -229,8 +246,8 @@ public readonly struct LogEntry
     /// <param name="value">The value to match.</param>
     public bool HasAttribute(string key, object value)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowIfNull(key);
+        ThrowIfNull(value);
 
         foreach (var attribute in Attributes)
         {
@@ -250,8 +267,8 @@ public readonly struct LogEntry
     public bool HasAttribute<T>(string key, T value)
         where T : notnull
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowIfNull(key);
+        ThrowIfNull(value);
 
         foreach (var attribute in Attributes)
         {
@@ -271,8 +288,8 @@ public readonly struct LogEntry
     /// is a match.</param>
     public bool HasAttribute(string key, Func<object, bool> valuePredicate)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(valuePredicate);
+        ThrowIfNull(key);
+        ThrowIfNull(valuePredicate);
 
         foreach (var attribute in Attributes)
         {
@@ -294,8 +311,8 @@ public readonly struct LogEntry
     public bool HasAttribute<T>(string key, Func<T, bool> valuePredicate)
         where T : notnull
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(valuePredicate);
+        ThrowIfNull(key);
+        ThrowIfNull(valuePredicate);
 
         foreach (var attribute in Attributes)
         {
@@ -323,7 +340,7 @@ public readonly struct LogEntry
     /// is a match.</param>
     public bool HasState(Func<object?, bool> statePredicate)
     {
-        ArgumentNullException.ThrowIfNull(statePredicate);
+        ThrowIfNull(statePredicate);
 
         return statePredicate(Attributes.State);
     }
@@ -336,7 +353,7 @@ public readonly struct LogEntry
     /// is a match.</param>
     public bool HasState<TState>(Func<TState, bool> statePredicate)
     {
-        ArgumentNullException.ThrowIfNull(statePredicate);
+        ThrowIfNull(statePredicate);
 
         return Attributes.State is TState state && statePredicate(state);
     }
@@ -358,7 +375,7 @@ public readonly struct LogEntry
     /// object is a match.</param>
     public bool HasScope(Func<object, bool> scopePredicate)
     {
-        ArgumentNullException.ThrowIfNull(scopePredicate);
+        ThrowIfNull(scopePredicate);
 
         for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
@@ -378,7 +395,7 @@ public readonly struct LogEntry
     public bool HasScope<TState>(Func<TState, bool> scopePredicate)
         where TState : notnull
     {
-        ArgumentNullException.ThrowIfNull(scopePredicate);
+        ThrowIfNull(scopePredicate);
 
         for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
@@ -420,7 +437,7 @@ public readonly struct LogEntry
     /// is a match.</param>
     public bool HasException(Func<Exception?, bool> exceptionPredicate)
     {
-        ArgumentNullException.ThrowIfNull(exceptionPredicate);
+        ThrowIfNull(exceptionPredicate);
 
         return exceptionPredicate(Exception);
     }
@@ -435,11 +452,12 @@ public readonly struct LogEntry
     public bool HasException<TException>(Func<TException, bool> exceptionPredicate)
         where TException : Exception
     {
-        ArgumentNullException.ThrowIfNull(exceptionPredicate);
+        ThrowIfNull(exceptionPredicate);
 
         return Exception is TException tException && exceptionPredicate(tException);
     }
 
+    /// <inheritdoc/>
     public override string ToString()
     {
         var sb = StringBuilderPool.Get();
