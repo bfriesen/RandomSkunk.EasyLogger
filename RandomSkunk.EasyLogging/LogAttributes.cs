@@ -59,7 +59,11 @@ public readonly struct LogAttributes
                 yield return new KeyValuePair<string, object>("State", stateString);
 
             foreach (var item in stateAttributes)
-                yield return new KeyValuePair<string, object>(item.Key, item.Value ?? "");
+            {
+                var key = item.Key;
+                if (key is not null)
+                    yield return new KeyValuePair<string, object>(key, item.Value ?? "");
+            }
         }
         else if (state is IEnumerable stateItems and not string)
         {
@@ -84,7 +88,6 @@ public readonly struct LogAttributes
         while (true)
         {
             state = scope.State;
-
             if (state is IEnumerable<KeyValuePair<string, object>> scopeAttributes)
             {
                 if (state.GetType().HasOverriddenToStringMethod() && state.ToString() is string stateString)
@@ -92,10 +95,11 @@ public readonly struct LogAttributes
 
                 foreach (var item in scopeAttributes)
                 {
-                    if (item.Key != "{OriginalFormat}")
-                        yield return new KeyValuePair<string, object>(item.Key, item.Value ?? "");
-                    else
-                        yield return new KeyValuePair<string, object>(scopeKey + ".OriginalFormat", item.Value ?? "");
+                    var key = item.Key;
+                    if (key == "{OriginalFormat}")
+                        yield return new KeyValuePair<string, object>("{" + scopeKey + ".OriginalFormat}", item.Value ?? "");
+                    else if (key is not null)
+                        yield return new KeyValuePair<string, object>(key, item.Value ?? "");
                 }
             }
             else if (state is IEnumerable scopeItems and not string)

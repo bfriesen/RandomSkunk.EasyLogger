@@ -5,6 +5,33 @@ namespace RandomSkunk.EasyLogging.Tests;
 
 public class EasyLoggerTests
 {
+    public class Identity
+    {
+        [Fact]
+        public void EasyLoggerImplementsILoggerInterface()
+        {
+            EasyLogger logger = new();
+
+            logger.Should().BeAssignableTo<ILogger>();
+        }
+
+        [Fact]
+        public void EasyLoggerOfTCategoryNameInheritsFromEasyLogger()
+        {
+            EasyLogger<Identity> logger = new();
+
+            logger.Should().BeAssignableTo<EasyLogger>();
+        }
+
+        [Fact]
+        public void EasyLoggerOfTCategoryNameImplementsILoggerOfTCategoryName()
+        {
+            EasyLogger<Identity> logger = new();
+
+            logger.Should().BeAssignableTo<ILogger<Identity>>();
+        }
+    }
+
     public class LogLevelProperty
     {
         [Fact]
@@ -204,7 +231,7 @@ public class EasyLoggerTests
     public class LogMethod
     {
         [Fact]
-        public void CallsWriteLogEntry()
+        public void CallsWriteLogEntryWhenIsEnabledIsTrue()
         {
             var logger = new TestingLogger();
 
