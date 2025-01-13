@@ -10,7 +10,7 @@ public class EasyLoggerTests
         [Fact]
         public void EasyLoggerImplementsILoggerInterface()
         {
-            EasyLogger logger = new();
+            EasyLogger logger = new ConcreteEasyLogger();
 
             logger.Should().BeAssignableTo<ILogger>();
         }
@@ -18,7 +18,7 @@ public class EasyLoggerTests
         [Fact]
         public void EasyLoggerOfTCategoryNameInheritsFromEasyLogger()
         {
-            EasyLogger<Identity> logger = new();
+            EasyLogger<Identity> logger = new ConcreteEasyLogger<Identity>();
 
             logger.Should().BeAssignableTo<EasyLogger>();
         }
@@ -26,7 +26,7 @@ public class EasyLoggerTests
         [Fact]
         public void EasyLoggerOfTCategoryNameImplementsILoggerOfTCategoryName()
         {
-            EasyLogger<Identity> logger = new();
+            EasyLogger<Identity> logger = new ConcreteEasyLogger<Identity>();
 
             logger.Should().BeAssignableTo<ILogger<Identity>>();
         }
@@ -37,7 +37,7 @@ public class EasyLoggerTests
         [Fact]
         public void DefaultValueIsInformation()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             logger.LogLevel.Should().Be(LogLevel.Information);
         }
@@ -47,7 +47,7 @@ public class EasyLoggerTests
         [InlineData(7)]
         public void GivenInvalidValueThrowsException(int logLevel)
         {
-            var act = () => new EasyLogger { LogLevel = (LogLevel)logLevel };
+            var act = () => new ConcreteEasyLogger { LogLevel = (LogLevel)logLevel };
 
             act.Should().Throw<ArgumentOutOfRangeException>();
         }
@@ -58,7 +58,7 @@ public class EasyLoggerTests
         [Fact]
         public void DefaultValueIsTrue()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             logger.IncludeScopes.Should().BeTrue();
         }
@@ -69,7 +69,7 @@ public class EasyLoggerTests
         [Fact]
         public void DefaultValueIsNull()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             logger.CurrentScope.Should().BeEmpty();
         }
@@ -143,7 +143,7 @@ public class EasyLoggerTests
         [InlineData(LogLevel.None, (LogLevel)7, false)]
         public void ReturnsTheCorrectValue(LogLevel loggerLogLevel, LogLevel logEventLogLevel, bool expectedIsEnabled)
         {
-            var logger = new EasyLogger { LogLevel = loggerLogLevel };
+            var logger = new ConcreteEasyLogger { LogLevel = loggerLogLevel };
 
             var actualIsEnabled = logger.IsEnabled(logEventLogLevel);
 
@@ -156,7 +156,7 @@ public class EasyLoggerTests
         [Fact]
         public void GivenNullStateObjectThrowsException()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             logger.Invoking(x => x.BeginScope<object>(null!))
                 .Should().Throw<ArgumentNullException>();
@@ -165,7 +165,7 @@ public class EasyLoggerTests
         [Fact]
         public void GivenIncludeScopesIsFalseReturnsNull()
         {
-            var logger = new EasyLogger { IncludeScopes = false };
+            var logger = new ConcreteEasyLogger { IncludeScopes = false };
 
             var scope = logger.BeginScope(123);
 
@@ -176,7 +176,7 @@ public class EasyLoggerTests
         [Fact]
         public void ReturnsScopeObjectAndSetsItToCurrentScope()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             // Begin the first, outer scope.
             var scope1 = logger.BeginScope(123);
@@ -208,7 +208,7 @@ public class EasyLoggerTests
         [Fact]
         public void HandlesOutOfOrderDisposalOfScopeObjects()
         {
-            var logger = new EasyLogger();
+            var logger = new ConcreteEasyLogger();
 
             // Begin the first, outer scope.
             var scope1 = logger.BeginScope(123);
@@ -344,7 +344,7 @@ public class EasyLoggerTests
             var exception = new InvalidOperationException("Oh, no!");
             string message = "Hello world!";
 
-            object? formatterCapturedState = new object();
+            object? formatterCapturedState = new();
             Exception? formatterCapturedException = null;
 
             var formatter = (object? s, Exception? e) =>

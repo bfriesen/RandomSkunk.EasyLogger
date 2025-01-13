@@ -12,7 +12,7 @@ using static ThrowHelper;
 /// <summary>
 /// A simple, low-allocation logger.
 /// </summary>
-public class EasyLogger : ILogger
+public abstract class EasyLogger : ILogger
 {
     private readonly AsyncLocal<Scope?> _currentScope = new();
 
@@ -54,17 +54,14 @@ public class EasyLogger : ILogger
     }
 
     /// <summary>
-    /// When overridden in a derived class, writes the specified log entry. The base virtual method
-    /// does nothing.
+    /// When overridden in a derived class, writes the specified log entry.
     /// </summary>
     /// <remarks>
     /// This method is called by <see cref="EasyLogger"/>'s <see cref="Log"/> method after
     /// verifying that <see cref="IsEnabled"/> is <see langword="true"/> for the given log level.
     /// </remarks>
     /// <param name="logEntry">The log entry to write.</param>
-    public virtual void WriteLogEntry(LogEntry logEntry)
-    {
-    }
+    public abstract void WriteLogEntry(LogEntry logEntry);
 
     /// <inheritdoc/>
     public void Log<TState>(
@@ -142,6 +139,6 @@ public class EasyLogger : ILogger
 /// </summary>
 /// <typeparam name="TCategoryName">The type whose name is used for the logger category name.
 /// </typeparam>
-public class EasyLogger<TCategoryName> : EasyLogger, ILogger<TCategoryName>
+public abstract class EasyLogger<TCategoryName> : EasyLogger, ILogger<TCategoryName>
 {
 }

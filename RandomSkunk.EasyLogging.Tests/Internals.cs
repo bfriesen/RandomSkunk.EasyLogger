@@ -1,4 +1,19 @@
-﻿namespace RandomSkunk.EasyLogging.Tests;
+﻿
+namespace RandomSkunk.EasyLogging.Tests;
+
+internal class ConcreteEasyLogger : RandomSkunk.EasyLogging.EasyLogger
+{
+    public override void WriteLogEntry(LogEntry logEntry)
+    {
+    }
+}
+
+internal class ConcreteEasyLogger<TCategoryName> : RandomSkunk.EasyLogging.EasyLogger<TCategoryName>
+{
+    public override void WriteLogEntry(LogEntry logEntry)
+    {
+    }
+}
 
 internal class DictionaryWithOverriddenToStringMethod(string toStringValue) : Dictionary<string, object>
 {
