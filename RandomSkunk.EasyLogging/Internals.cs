@@ -136,8 +136,27 @@ internal static class ThrowHelper
     {
         if (argument is null)
         {
-            throw new ArgumentNullException(paramName);
+            throw new ArgumentNullException(paramName, "Value cannot be null.");
         }
+    }
+
+    public static void ThrowIfNullOrWhiteSpace([NotNull] string? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+    {
+        if (argument is null || IsWhiteSpace(argument))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", paramName);
+        }
+    }
+
+    private static bool IsWhiteSpace(string value)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (!char.IsWhiteSpace(value[i]))
+                return false;
+        }
+
+        return true;
     }
 }
 #endif

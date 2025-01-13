@@ -5,6 +5,13 @@ using Microsoft.Extensions.Logging;
 
 namespace RandomSkunk.EasyLogging.Experimental;
 
+#if NET7_0_OR_GREATER
+using static ArgumentException;
+using static ArgumentNullException;
+#else
+using static ThrowHelper;
+#endif
+
 public static class LoggerExtensions
 {
     private static readonly Func<FormattedLogAttributes, Exception?, string> _messageFormatter = MessageFormatter;
@@ -15,27 +22,27 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Trace, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Trace, eventId, exception, messageFormat, attributes);
 
     public static void Trace(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Trace, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Trace, eventId, null, messageFormat, attributes);
 
     public static void Trace(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Trace, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Trace, 0, exception, messageFormat, attributes);
 
     public static void Trace(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Trace, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Trace, 0, null, messageFormat, attributes);
 
     public static void Debug(
         this ILogger logger,
@@ -43,27 +50,27 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Debug, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Debug, eventId, exception, messageFormat, attributes);
 
     public static void Debug(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Debug, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Debug, eventId, null, messageFormat, attributes);
 
     public static void Debug(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Debug, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Debug, 0, exception, messageFormat, attributes);
 
     public static void Debug(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Debug, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Debug, 0, null, messageFormat, attributes);
 
     public static void Information(
         this ILogger logger,
@@ -71,27 +78,27 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Information, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Information, eventId, exception, messageFormat, attributes);
 
     public static void Information(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Information, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Information, eventId, null, messageFormat, attributes);
 
     public static void Information(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Information, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Information, 0, exception, messageFormat, attributes);
 
     public static void Information(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Information, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Information, 0, null, messageFormat, attributes);
 
     public static void Warning(
         this ILogger logger,
@@ -99,27 +106,27 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Warning, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Warning, eventId, exception, messageFormat, attributes);
 
     public static void Warning(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Warning, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Warning, eventId, null, messageFormat, attributes);
 
     public static void Warning(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Warning, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Warning, 0, exception, messageFormat, attributes);
 
     public static void Warning(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Warning, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Warning, 0, null, messageFormat, attributes);
 
     public static void Error(
         this ILogger logger,
@@ -127,27 +134,27 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Error, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Error, eventId, exception, messageFormat, attributes);
 
     public static void Error(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Error, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Error, eventId, null, messageFormat, attributes);
 
     public static void Error(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Error, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Error, 0, exception, messageFormat, attributes);
 
     public static void Error(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Error, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Error, 0, null, messageFormat, attributes);
 
     public static void Critical(
         this ILogger logger,
@@ -155,29 +162,29 @@ public static class LoggerExtensions
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Critical, eventId, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Critical, eventId, exception, messageFormat, attributes);
 
     public static void Critical(
         this ILogger logger,
         EventId eventId,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Critical, eventId, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Critical, eventId, null, messageFormat, attributes);
 
     public static void Critical(
         this ILogger logger,
         Exception? exception,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Critical, 0, exception, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Critical, 0, exception, messageFormat, attributes);
 
     public static void Critical(
         this ILogger logger,
         string messageFormat,
         params (string Key, object Value)[] attributes) =>
-        logger.LogWithAttributes(LogLevel.Critical, 0, null, messageFormat, attributes);
+        logger.LogAttributes(LogLevel.Critical, 0, null, messageFormat, attributes);
 
-    private static void LogWithAttributes(
+    private static void LogAttributes(
         this ILogger logger,
         LogLevel logLevel,
         EventId eventId,
@@ -185,11 +192,8 @@ public static class LoggerExtensions
         string messageFormat,
         (string, object)[] attributes)
     {
-        ArgumentNullException.ThrowIfNull(logger);
-        ArgumentException.ThrowIfNullOrWhiteSpace(messageFormat);
-
-        if (logLevel is < LogLevel.Trace or > LogLevel.Critical)
-            throw new ArgumentOutOfRangeException(nameof(logLevel));
+        ThrowIfNull(logger);
+        ThrowIfNullOrWhiteSpace(messageFormat);
 
         var state = new FormattedLogAttributes(messageFormat, attributes ?? []);
         logger.Log(logLevel, eventId, state, exception, _messageFormatter);
@@ -199,7 +203,7 @@ public static class LoggerExtensions
         this ILogger logger,
         params (string Key, object Value)[] attributes)
     {
-        ArgumentNullException.ThrowIfNull(logger);
+        ThrowIfNull(logger);
 
         if (attributes is null or { Length: 0 })
             return null;
@@ -212,24 +216,21 @@ public static class LoggerExtensions
         string messageFormat,
         params (string Key, object Value)[] attributes)
     {
-        ArgumentNullException.ThrowIfNull(logger);
+        ThrowIfNull(logger);
 
         var state = new FormattedLogAttributes(messageFormat, attributes ?? []);
         return logger.BeginScope(state);
     }
 
-    private readonly struct FormattedLogAttributes : IReadOnlyCollection<KeyValuePair<string, object>>
+    private readonly struct FormattedLogAttributes(string messageFormat, (string, object)[] attributes) : IReadOnlyCollection<KeyValuePair<string, object>>
     {
-        private static readonly ConcurrentDictionary<string[], Regex> _regexByAttributeKeys = new(AttributeKeysComparer.Instance);
+        private const int _maxCachedRegexCount = 1024;
 
-        private readonly string _messageFormat;
-        private readonly (string Key, object Value)[] _attributes;
+        private static readonly ConcurrentDictionary<string[], Regex?> _regexByAttributeKeys = new(AttributeKeysComparer.Instance);
+        private static int _regexCount = 0;
 
-        public FormattedLogAttributes(string messageFormat, (string, object)[] attributes)
-        {
-            _messageFormat = messageFormat;
-            _attributes = attributes ?? [];
-        }
+        private readonly string _messageFormat = messageFormat;
+        private readonly (string Key, object Value)[] _attributes = attributes ?? [];
 
         public int Count => _attributes.Length;
 
@@ -238,19 +239,20 @@ public static class LoggerExtensions
             var localAttributes = _attributes;
             var attributesLength = localAttributes.Length;
 
-            var attributeKeys = new string[attributesLength + 1];
+            var attributeKeys = new string[attributesLength + (exception is null ? 0 : 1)];
             for (var i = 0; i < attributesLength; i++)
                 attributeKeys[i] = Regex.Escape(localAttributes[i].Key);
-            attributeKeys[^1] = nameof(Exception);
+            if (exception is not null)
+                attributeKeys[^1] = @"{Exception(?:\.(?:Message|StackTrace))?}";
             Array.Sort(attributeKeys);
 
-            var regex = _regexByAttributeKeys.GetOrAdd(
-                attributeKeys,
-                keys =>
-                {
-                    var pattern = "(?<={)(?>" + string.Join('|', keys) + ")(?=})";
-                    return new Regex(pattern); // Is it worth it for a compiled regex here?
-                });
+            var regex = _regexByAttributeKeys.GetOrAdd(attributeKeys, keys =>
+            {
+                if (Interlocked.Increment(ref _regexCount) > _maxCachedRegexCount)
+                    return null;
+
+                return GetRegex(keys, compiled: true);
+            }) ?? GetRegex(attributeKeys);
 
             return regex.Replace(
                 _messageFormat,
@@ -261,14 +263,32 @@ public static class LoggerExtensions
                     foreach (var (key, value) in localAttributes)
                     {
                         if (matchedKey == key)
-                            return value?.ToString() ?? "";
+                            return value?.ToString() ?? string.Empty;
                     }
 
-                    if (matchedKey == nameof(Exception))
-                        return exception?.ToString() ?? "";
+                    if (exception is not null && matchedKey.StartsWith("Exception"))
+                    {
+                        switch (match.Length)
+                        {
+                            case 11: return exception.ToString() ?? string.Empty;
+                            case 19: return exception.Message ?? string.Empty;
+                            case 22: return exception.StackTrace ?? string.Empty;
+                        }
+                    }
 
-                    return "";
+                    return string.Empty;
                 });
+
+            static Regex GetRegex(string[] keys, bool compiled = false)
+            {
+#if NETCOREAPP2_0_OR_GREATER
+                const char separator = '|';
+#else
+                const string separator = "|";
+#endif
+                var pattern = "(?<={)(?>" + string.Join(separator, keys) + ")(?=})";
+                return new Regex(pattern, compiled ? RegexOptions.Compiled : RegexOptions.None);
+            }
         }
 
         public override string ToString() => FormatMessage(null);
