@@ -10,7 +10,17 @@ using static ThrowHelper;
 #endif
 
 /// <summary>
-/// A simple, low-allocation logger.
+/// An implementation of the <see cref="ILogger"/> interface. It is designed to fulfill the
+/// following requirements:
+/// <list type="bullet">
+///   <item>It should make setup and verification of a mock <see cref="ILogger"/> easy, regardless
+///   of the mocking library.</item>
+///   <item>As a base class for a custom <see cref="ILogger"/>, it should be both easy to implement
+///   and easy to understand <em>how</em> to implement it.</item>
+///   <item>It should correctly implement logging scopes and make this information easily available
+///   to a test or custom logger implementation.</item>
+///   <item>It should have minimal impact on performance.</item>
+/// </list>
 /// </summary>
 public abstract class EasyLogger : ILogger
 {
@@ -135,7 +145,17 @@ public abstract class EasyLogger : ILogger
 }
 
 /// <summary>
-/// A simple, low-allocation logger.
+/// An implementation of the <see cref="ILogger{TCategoryName}"/> interface. It is designed to
+/// fulfill the following requirements:
+/// <list type="bullet">
+///   <item>It should make setup and verification of a mock <see cref="ILogger{TCategoryName}"/>
+///   easy, regardless of the mocking library.</item>
+///   <item>As a base class for a custom <see cref="ILogger{TCategoryName}"/>, it should be both
+///   easy to implement and easy to understand <em>how</em> to implement it.</item>
+///   <item>It should correctly implement logging scopes and make this information easily available
+///   to a test or custom logger implementation.</item>
+///   <item>It should have minimal impact on performance.</item>
+/// </list>
 /// </summary>
 /// <typeparam name="TCategoryName">The type whose name is used for the logger category name.
 /// </typeparam>
