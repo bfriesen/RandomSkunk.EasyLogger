@@ -30,17 +30,16 @@ public readonly struct LogAttributes
     public LogAttributes(object? state, params object[] scope)
     {
         State = state;
-        Scope = null;
 
         if (scope is null)
             return;
 
-        foreach (var scopeState in scope.Reverse())
+        for (int i = scope.Length - 1; i >= 0; i--)
         {
-            if (scopeState is null)
-                throw new ArgumentNullException(nameof(scope), "Cannot have any null elements.");
+            if (scope[i] is null)
+                throw new ArgumentException("Cannot have any null elements.", nameof(scope));
 
-            Scope = new LoggerScope(scopeState, Scope);
+            Scope = new LoggerScope(scope[i], Scope);
         }
     }
 

@@ -23,7 +23,7 @@ public readonly struct LogEntry
     /// </summary>
     /// <param name="logLevel">The log level of the entry.</param>
     /// <param name="eventId">The Id of the entry.</param>
-    /// <param name="getMessage">A function that returns the message of the entry.</param>
+    /// <param name="getMessage">A function that gets the message of the entry.</param>
     /// <param name="attributes">A collection of key/value pairs that describe the state and scope
     /// of the entry.</param>
     /// <param name="exception">The exception related to the entry.</param>
@@ -151,7 +151,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has an Id that matches the specified predicate.
     /// </summary>
-    /// <param name="eventIdPredicate">A function that returns whether the log entry's Id is a
+    /// <param name="eventIdPredicate">A function that determines whether the log entry's Id is a
     /// match.</param>
     public bool HasEventId(Func<EventId, bool> eventIdPredicate)
     {
@@ -187,8 +187,8 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has a message that matches the specified predicate.
     /// </summary>
-    /// <param name="messagePredicate">A function that returns whether the log entry's message is a
-    /// match.</param>
+    /// <param name="messagePredicate">A function that determines whether the log entry's message
+    /// is a match.</param>
     public bool HasMessage(Func<string, bool> messagePredicate)
     {
         ThrowIfNull(messagePredicate);
@@ -324,19 +324,19 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry was made without a state object.
+    /// Whether the log entry was made without a state.
     /// </summary>
     public bool HasNoState() => Attributes.State is null;
 
     /// <summary>
-    /// Whether the log entry was made with any state object.
+    /// Whether the log entry was made with any state.
     /// </summary>
     public bool HasState() => Attributes.State is not null;
 
     /// <summary>
-    /// Whether the log entry was made with a state object that matches the specified predicate.
+    /// Whether the log entry was made with a state that matches the specified predicate.
     /// </summary>
-    /// <param name="statePredicate">A function that returns whether the log entry's state object
+    /// <param name="statePredicate">A function that determines whether the log entry's state
     /// is a match.</param>
     public bool HasState(Func<object?, bool> statePredicate)
     {
@@ -346,10 +346,10 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry was made with a state object that matches the specified predicate.
+    /// Whether the log entry was made with a state that matches the specified predicate.
     /// </summary>
-    /// <typeparam name="TState">The expectetd type of the state object.</typeparam>
-    /// <param name="statePredicate">A function that returns whether the log entry's state object
+    /// <typeparam name="TState">The expectetd type of the state.</typeparam>
+    /// <param name="statePredicate">A function that determines whether the log entry's state
     /// is a match.</param>
     public bool HasState<TState>(Func<TState, bool> statePredicate)
     {
@@ -371,8 +371,8 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made with a logger scope that matches the specified predicate.
     /// </summary>
-    /// <param name="scopePredicate">A function that returns whether the log entry's scope state
-    /// object is a match.</param>
+    /// <param name="scopePredicate">A function that determines whether the logger scope is a
+    /// match.</param>
     public bool HasScope(Func<object, bool> scopePredicate)
     {
         ThrowIfNull(scopePredicate);
@@ -389,9 +389,9 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made with a logger scope that matches the specified predicate.
     /// </summary>
-    /// <typeparam name="TState">The expected type of the scope's state object.</typeparam>
-    /// <param name="scopePredicate">A function that returns whether the log entry's scope state
-    /// object is a match.</param>
+    /// <typeparam name="TState">The expected type of the logger scope.</typeparam>
+    /// <param name="scopePredicate">A function that determines whether the logger scope is a
+    /// match.</param>
     public bool HasScope<TState>(Func<TState, bool> scopePredicate)
         where TState : notnull
     {
@@ -433,8 +433,8 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has an exception that matches the specified predicate.
     /// </summary>
-    /// <param name="exceptionPredicate">A function that returns whether the log entry's exception
-    /// is a match.</param>
+    /// <param name="exceptionPredicate">A function that determines whether the log entry's
+    /// exception is a match.</param>
     public bool HasException(Func<Exception?, bool> exceptionPredicate)
     {
         ThrowIfNull(exceptionPredicate);
@@ -447,8 +447,8 @@ public readonly struct LogEntry
     /// matches the specified predicate.
     /// </summary>
     /// <typeparam name="TException">The expected type of exception.</typeparam>
-    /// <param name="exceptionPredicate">A function that returns whether the log entry's exception
-    /// is a match.</param>
+    /// <param name="exceptionPredicate">A function that determines whether the log entry's
+    /// exception is a match.</param>
     public bool HasException<TException>(Func<TException, bool> exceptionPredicate)
         where TException : Exception
     {

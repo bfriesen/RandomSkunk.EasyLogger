@@ -1,14 +1,14 @@
 ﻿
 namespace RandomSkunk.EasyLogging.Tests;
 
-internal class ConcreteEasyLogger : RandomSkunk.EasyLogging.EasyLogger
+internal class ConcreteEasyLogger : EasyLogger
 {
     public override void Write(LogEntry logEntry)
     {
     }
 }
 
-internal class ConcreteEasyLogger<TCategoryName> : RandomSkunk.EasyLogging.EasyLogger<TCategoryName>
+internal class ConcreteEasyLogger<TCategoryName> : EasyLogger<TCategoryName>
 {
     public override void Write(LogEntry logEntry)
     {

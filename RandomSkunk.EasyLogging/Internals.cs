@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -115,24 +114,12 @@ internal static class TypeExtensions
             });
 }
 
-internal static class TupleExtensions
-{
-    public static IEnumerable<KeyValuePair<string, object>> ToKeyValuePairs(
-        this IEnumerable<(string Key, object Value)> attributes)
-    {
-        if (attributes is null)
-            return [];
-
-        return attributes
-            .Where(x => x.Key is not null)
-            .Select(x => new KeyValuePair<string, object>(x.Key, x.Value));
-    }
-}
-
 #if !NET7_0_OR_GREATER
 internal static class ThrowHelper
 {
-    public static void ThrowIfNull([NotNull] object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+    public static void ThrowIfNull(
+        [System.Diagnostics.CodeAnalysis.NotNull] object? argument,
+        [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {
         if (argument is null)
         {
