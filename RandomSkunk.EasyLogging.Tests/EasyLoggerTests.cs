@@ -378,7 +378,7 @@ public class EasyLoggerTests
         {
             public LogEntry? CapturedLogEntry { get; set; }
 
-            public override void WriteLogEntry(LogEntry logEntry)
+            public override void Write(LogEntry logEntry)
             {
                 if (CapturedLogEntry is not null)
                     throw new InvalidOperationException("TestingLogger must not be used to log more than once.");

@@ -71,7 +71,7 @@ public abstract class EasyLogger : ILogger
     /// verifying that <see cref="IsEnabled"/> is <see langword="true"/> for the given log level.
     /// </remarks>
     /// <param name="logEntry">The log entry to write.</param>
-    public abstract void WriteLogEntry(LogEntry logEntry);
+    public abstract void Write(LogEntry logEntry);
 
     /// <inheritdoc/>
     public void Log<TState>(
@@ -87,7 +87,7 @@ public abstract class EasyLogger : ILogger
         var getMessage = () => formatter(state, exception);
         var attributes = new LogAttributes(state, _currentScope.Value);
         var logEntry = new LogEntry(logLevel, eventId, getMessage, attributes, exception);
-        WriteLogEntry(logEntry);
+        Write(logEntry);
     }
 
     /// <inheritdoc/>

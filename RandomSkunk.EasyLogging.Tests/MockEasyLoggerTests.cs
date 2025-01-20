@@ -18,7 +18,7 @@ public class MockEasyLoggerTests
 
             LogEntry capturedLogEntry = default;
 
-            mockLogger.Setup(m => m.WriteLogEntry(It.IsAny<LogEntry>()))
+            mockLogger.Setup(m => m.Write(It.IsAny<LogEntry>()))
                 .Callback<LogEntry>(logEntry => capturedLogEntry = logEntry);
 
             logger.LogInformation("Hello, {Who}!", "world");
@@ -35,7 +35,7 @@ public class MockEasyLoggerTests
 
             LogEntry capturedLogEntry = default;
 
-            A.CallTo(() => logger.WriteLogEntry(A<LogEntry>.Ignored))
+            A.CallTo(() => logger.Write(A<LogEntry>.Ignored))
                 .Invokes((LogEntry logEntry) => capturedLogEntry = logEntry);
 
             logger.LogInformation("Hello, {Who}!", "world");
@@ -52,7 +52,7 @@ public class MockEasyLoggerTests
 
             LogEntry capturedLogEntry = default;
 
-            logger.When(m => m.WriteLogEntry(Arg.Any<LogEntry>()))
+            logger.When(m => m.Write(Arg.Any<LogEntry>()))
                 .Do(x => capturedLogEntry = x.Arg<LogEntry>());
 
             logger.LogInformation("Hello, {Who}!", "world");
@@ -73,7 +73,7 @@ public class MockEasyLoggerTests
 
             logger.LogInformation("Hello, {Who}!", "world");
 
-            mockLogger.Verify(m => m.WriteLogEntry(It.Is<LogEntry>(log =>
+            mockLogger.Verify(m => m.Write(It.Is<LogEntry>(log =>
                 log.IsInformation() && log.HasMessage("Hello, world!") && log.HasAttribute("Who", "world"))));
         }
 
@@ -84,7 +84,7 @@ public class MockEasyLoggerTests
 
             logger.LogInformation("Hello, {Who}!", "world");
 
-            A.CallTo(() => logger.WriteLogEntry(A<LogEntry>.That.Matches(log =>
+            A.CallTo(() => logger.Write(A<LogEntry>.That.Matches(log =>
                 log.IsInformation() && log.HasMessage("Hello, world!") && log.HasAttribute("Who", "world"))))
                 .MustHaveHappened();
         }
@@ -96,7 +96,7 @@ public class MockEasyLoggerTests
 
             logger.LogInformation("Hello, {Who}!", "world");
 
-            logger.Received().WriteLogEntry(Arg.Is<LogEntry>(log =>
+            logger.Received().Write(Arg.Is<LogEntry>(log =>
                 log.IsInformation() && log.HasMessage("Hello, world!") && log.HasAttribute("Who", "world")));
         }
     }
