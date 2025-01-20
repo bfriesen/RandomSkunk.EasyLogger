@@ -334,6 +334,31 @@ public readonly struct LogEntry
     public bool HasState() => Attributes.State is not null;
 
     /// <summary>
+    /// Whether the log entry was made with the specified state.
+    /// </summary>
+    /// <param name="expectedState">The expected state.</param>
+    public bool HasState(object? expectedState)
+    {
+        if (expectedState is null)
+            return Attributes.State is null;
+
+        return Equals(Attributes.State, expectedState);
+    }
+
+    /// <summary>
+    /// Whether the log entry was made with the specified state.
+    /// </summary>
+    /// <typeparam name="TState">The type of the expected state.</typeparam>
+    /// <param name="expectedState">The expected state.</param>
+    public bool HasState<TState>(TState? expectedState)
+    {
+        if (expectedState is null)
+            return Attributes.State is null;
+
+        return Attributes.State is TState state && Equals(state, expectedState);
+    }
+
+    /// <summary>
     /// Whether the log entry was made with a state that matches the specified predicate.
     /// </summary>
     /// <param name="statePredicate">A function that determines whether the log entry's state
@@ -367,6 +392,43 @@ public readonly struct LogEntry
     /// Whether the log entry was made with a logger scope.
     /// </summary>
     public bool HasScope() => Attributes.Scope is not null;
+
+    /// <summary>
+    /// Whether the log entry was made with the specified logger scope.
+    /// </summary>
+    /// <param name="expectedScope">The expected logger scope.</param>
+    public bool HasScope(object? expectedScope)
+    {
+        if (expectedScope is null)
+            return Attributes.Scope is null;
+
+        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        {
+            if (Equals(scope, expectedScope))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether the log entry was made with the specified logger scope.
+    /// </summary>
+    /// <typeparam name="TState">The type of the expected logger scope.</typeparam>
+    /// <param name="expectedScope">The expected logger scope.</param>
+    public bool HasScope<TState>(TState? expectedScope)
+    {
+        if (expectedScope is null)
+            return Attributes.Scope is null;
+
+        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        {
+            if (scope.State is TState state && Equals(state, expectedScope))
+                return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Whether the log entry was made with a logger scope that matches the specified predicate.
