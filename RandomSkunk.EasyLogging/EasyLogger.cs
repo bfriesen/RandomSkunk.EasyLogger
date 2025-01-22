@@ -58,6 +58,9 @@ public abstract class EasyLogger : ILogger
     {
         get
         {
+            if (!IncludeScopes)
+                yield break;
+
             for (var scope = _currentScope.Value; scope is not null; scope = scope.ParentScope)
                 yield return scope.State;
         }
@@ -85,7 +88,8 @@ public abstract class EasyLogger : ILogger
             return;
 
         var getMessage = () => formatter(state, exception);
-        var attributes = new LogAttributes(state, _currentScope.Value);
+        var currentScope = IncludeScopes ? _currentScope.Value : null;
+        var attributes = new LogAttributes(state, currentScope);
         var logEntry = new LogEntry(logLevel, eventId, getMessage, attributes, exception);
         Write(logEntry);
     }
