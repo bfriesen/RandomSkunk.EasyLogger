@@ -168,7 +168,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(expectedMessage);
 
-        return string.Equals(GetMessage(), expectedMessage);
+        return GetMessage is not null && string.Equals(GetMessage(), expectedMessage);
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(expectedMessage);
 
-        return string.Equals(GetMessage(), expectedMessage, stringComparison);
+        return GetMessage is not null && string.Equals(GetMessage(), expectedMessage, stringComparison);
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(messagePredicate);
 
-        return messagePredicate(GetMessage());
+        return GetMessage is not null && messagePredicate(GetMessage());
     }
 
     /// <summary>
@@ -204,7 +204,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(regexPattern);
 
-        return Regex.IsMatch(GetMessage(), regexPattern);
+        return GetMessage is not null && Regex.IsMatch(GetMessage(), regexPattern);
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(regexPattern);
 
-        return Regex.IsMatch(GetMessage(), regexPattern, regexOptions);
+        return GetMessage is not null && Regex.IsMatch(GetMessage(), regexPattern, regexOptions);
     }
 
     /// <summary>
@@ -404,7 +404,7 @@ public readonly struct LogEntry
 
         for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
-            if (Equals(scope, expectedScope))
+            if (Equals(scope.State, expectedScope))
                 return true;
         }
 
