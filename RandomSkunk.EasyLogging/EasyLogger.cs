@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace RandomSkunk.EasyLogging;
 
@@ -31,9 +32,8 @@ public abstract class EasyLogger : ILogger
     /// <summary>
     /// Gets or sets the minimum log level that the logger should write.
     /// </summary>
-    /// <remarks>Default value is <see cref="Microsoft.Extensions.Logging.LogLevel.Information"/>.
-    /// </remarks>
-    public LogLevel LogLevel
+    /// <remarks>Default value is <see cref="LogLevel.Information"/>.</remarks>
+    public LogLevel MinimumLogLevel
     {
         get => _minimumLogLevel;
         set

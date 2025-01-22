@@ -32,14 +32,14 @@ public class EasyLoggerTests
         }
     }
 
-    public class LogLevelProperty
+    public class MinimumLogLevelProperty
     {
         [Fact]
         public void DefaultValueIsInformation()
         {
             var logger = new ConcreteEasyLogger();
 
-            logger.LogLevel.Should().Be(LogLevel.Information);
+            logger.MinimumLogLevel.Should().Be(LogLevel.Information);
         }
 
         [Theory]
@@ -47,7 +47,7 @@ public class EasyLoggerTests
         [InlineData(7)]
         public void GivenInvalidValueThrowsException(int logLevel)
         {
-            var act = () => new ConcreteEasyLogger { LogLevel = (LogLevel)logLevel };
+            var act = () => new ConcreteEasyLogger { MinimumLogLevel = (LogLevel)logLevel };
 
             act.Should().Throw<ArgumentOutOfRangeException>();
         }
@@ -143,7 +143,7 @@ public class EasyLoggerTests
         [InlineData(LogLevel.None, (LogLevel)7, false)]
         public void ReturnsTheCorrectValue(LogLevel loggerLogLevel, LogLevel logEventLogLevel, bool expectedIsEnabled)
         {
-            var logger = new ConcreteEasyLogger { LogLevel = loggerLogLevel };
+            var logger = new ConcreteEasyLogger { MinimumLogLevel = loggerLogLevel };
 
             var actualIsEnabled = logger.IsEnabled(logEventLogLevel);
 
