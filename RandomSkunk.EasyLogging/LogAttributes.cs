@@ -5,7 +5,7 @@ using System.Text;
 namespace RandomSkunk.EasyLogging;
 
 /// <summary>
-/// Represents a collection of key/value pairs that describe the state and scope of a log entry.
+/// Represents a collection of key/value pairs derived from the state and scope of a log entry.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct LogAttributes
@@ -21,12 +21,11 @@ public readonly struct LogAttributes
     /// Initializes a new instance of the <see cref="LogAttributes"/> struct.
     /// </summary>
     /// <param name="state">The entry to be written. Can be also an object.</param>
-    /// <param name="scope">A collection of objects that represent a logger's current scope at the
-    /// time of a log event. The first object in the collection represents the logger's current
-    /// scope, the second object represents its parent scope, the third represents its grandparent
-    /// scope, and so on.</param>
-    /// <exception cref="ArgumentNullException">If any of the elements in <paramref name="scope"/>
-    /// are <see langword="null"/>.</exception>
+    /// <param name="scope">A collection of objects that represent a logger's current scope at the time of a log event. The first
+    ///     object in the collection represents the logger's current scope, the second object represents its parent scope, the
+    ///     third represents its grandparent scope, and so on.</param>
+    /// <exception cref="ArgumentNullException">If any of the elements in <paramref name="scope"/> are <see langword="null"/>.
+    ///     </exception>
     public LogAttributes(object? state, params object[] scope)
     {
         State = state;

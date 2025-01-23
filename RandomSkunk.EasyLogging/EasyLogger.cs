@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace RandomSkunk.EasyLogging;
@@ -11,16 +12,22 @@ using static ThrowHelper;
 #endif
 
 /// <summary>
-/// An implementation of the <see cref="ILogger"/> interface. It is designed to fulfill the
-/// following requirements:
+/// An implementation of the <see cref="ILogger"/> interface. It is designed to fulfill the following requirements:
 /// <list type="bullet">
-///   <item>It should make setup and verification of a mock <see cref="ILogger"/> easy, regardless
-///   of the mocking library.</item>
-///   <item>As a base class for a custom <see cref="ILogger"/>, it should be both easy to implement
-///   and easy to understand <em>how</em> to implement it.</item>
-///   <item>It should correctly implement logging scopes and make this information easily available
-///   to a test or custom logger implementation.</item>
-///   <item>It should have minimal impact on performance.</item>
+///     <item>
+///         It should make setup and verification of a mock <see cref="ILogger"/> easy, regardless of the mocking library.
+///     </item>
+///     <item>
+///         As a base class for a custom <see cref="ILogger"/>, it should be both easy to implement and easy to understand
+///         <em>how</em> to implement it.
+///     </item>
+///     <item>
+///         It should correctly implement logging scopes and make this information easily available to a test or custom logger
+///         implementation.
+///     </item>
+///     <item>
+///         It should have minimal impact on performance.
+///     </item>
 /// </list>
 /// </summary>
 public abstract class EasyLogger : ILogger
@@ -32,7 +39,9 @@ public abstract class EasyLogger : ILogger
     /// <summary>
     /// Gets or sets the minimum log level that the logger should write.
     /// </summary>
-    /// <remarks>Default value is <see cref="LogLevel.Information"/>.</remarks>
+    /// <remarks>
+    /// Default value is <see cref="LogLevel.Information"/>.
+    /// </remarks>
     public LogLevel MinimumLogLevel
     {
         get => _minimumLogLevel;
@@ -48,7 +57,9 @@ public abstract class EasyLogger : ILogger
     /// <summary>
     /// Gets or sets a value indicating whether scopes should be included in log entries.
     /// </summary>
-    /// <remarks>Default value is <see langword="true"/>.</remarks>
+    /// <remarks>
+    /// Default value is <see langword="true"/>.
+    /// </remarks>
     public bool IncludeScopes { get; init; } = true;
 
     /// <summary>
@@ -70,8 +81,8 @@ public abstract class EasyLogger : ILogger
     /// When overridden in a derived class, writes the specified log entry.
     /// </summary>
     /// <remarks>
-    /// This method is called by <see cref="EasyLogger"/>'s <see cref="Log"/> method after
-    /// verifying that <see cref="IsEnabled"/> is <see langword="true"/> for the given log level.
+    /// This method is called by <see cref="EasyLogger"/>'s <see cref="Log"/> method after verifying that <see cref="IsEnabled"/>
+    /// is <see langword="true"/> for the given log level.
     /// </remarks>
     /// <param name="logEntry">The log entry to write.</param>
     public abstract void Write(LogEntry logEntry);
@@ -99,8 +110,7 @@ public abstract class EasyLogger : ILogger
         logLevel >= _minimumLogLevel && logLevel < LogLevel.None;
 
     /// <summary>
-    /// Begins a logical operation scope by pushing the specified state onto the logger's scope
-    /// stack.
+    /// Begins a logical operation scope by pushing the specified state onto the logger's scope stack.
     /// </summary>
     /// <typeparam name="TState">The type of the state to begin scope for.</typeparam>
     /// <param name="state"></param>
@@ -149,20 +159,27 @@ public abstract class EasyLogger : ILogger
 }
 
 /// <summary>
-/// An implementation of the <see cref="ILogger{TCategoryName}"/> interface. It is designed to
-/// fulfill the following requirements:
+/// An implementation of the <see cref="ILogger{TCategoryName}"/> interface. It is designed to fulfill the following
+/// requirements:
 /// <list type="bullet">
-///   <item>It should make setup and verification of a mock <see cref="ILogger{TCategoryName}"/>
-///   easy, regardless of the mocking library.</item>
-///   <item>As a base class for a custom <see cref="ILogger{TCategoryName}"/>, it should be both
-///   easy to implement and easy to understand <em>how</em> to implement it.</item>
-///   <item>It should correctly implement logging scopes and make this information easily available
-///   to a test or custom logger implementation.</item>
-///   <item>It should have minimal impact on performance.</item>
+///     <item>
+///         It should make setup and verification of a mock <see cref="ILogger{TCategoryName}"/> easy, regardless of the mocking
+///         library.
+///     </item>
+///     <item>
+///         As a base class for a custom <see cref="ILogger{TCategoryName}"/>, it should be both easy to implement and easy to
+///         understand <em>how</em> to implement it.
+///     </item>
+///     <item>
+///         It should correctly implement logging scopes and make this information easily available to a test or custom logger
+///         implementation.
+///     </item>
+///     <item>
+///         It should have minimal impact on performance.
+///     </item>
 /// </list>
 /// </summary>
-/// <typeparam name="TCategoryName">The type whose name is used for the logger category name.
-/// </typeparam>
+/// <typeparam name="TCategoryName">The type whose name is used for the logger category name.</typeparam>
 public abstract class EasyLogger<TCategoryName> : EasyLogger, ILogger<TCategoryName>
 {
 }

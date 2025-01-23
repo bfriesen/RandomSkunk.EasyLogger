@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
+
 namespace RandomSkunk.EasyLogging;
 
 #if NET7_0_OR_GREATER
@@ -21,14 +23,12 @@ public readonly struct LogEntry
     /// <summary>
     /// Initializes a new instance of the <see cref="LogEntry"/> struct.
     /// </summary>
-    /// <param name="logLevel">The log level of the entry.</param>
-    /// <param name="eventId">The Id of the entry.</param>
-    /// <param name="getMessage">A function that gets the message of the entry.</param>
-    /// <param name="attributes">A collection of key/value pairs that describe the state and scope
-    /// of the entry.</param>
-    /// <param name="exception">The exception related to the entry.</param>
-    /// <exception cref="ArgumentNullException">If <paramref name="getMessage"/> is
-    /// <see langword="null"/>.</exception>
+    /// <param name="logLevel">The log level of the log entry.</param>
+    /// <param name="eventId">The Id of the log entry.</param>
+    /// <param name="getMessage">A function that gets the message of the log entry.</param>
+    /// <param name="attributes">A collection of key/value pairs that describe the state and scope of the log entry.</param>
+    /// <param name="exception">The exception related to the log entry.</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="getMessage"/> is <see langword="null"/>.</exception>
     public LogEntry(
         LogLevel logLevel,
         EventId eventId,
@@ -46,27 +46,27 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// The log level of the entry.
+    /// The log level of the log entry.
     /// </summary>
     public LogLevel LogLevel { get; }
 
     /// <summary>
-    /// The Id of the entry.
+    /// The Id of the log entry.
     /// </summary>
     public EventId EventId { get; }
 
     /// <summary>
-    /// A function that gets the message of the entry.
+    /// A function that gets the message of the log entry.
     /// </summary>
     public Func<string> GetMessage { get; }
 
     /// <summary>
-    /// A collection of key/value pairs that describe the state and scope of the entry.
+    /// A collection of key/value pairs derived from the state and scope of the log entry.
     /// </summary>
     public LogAttributes Attributes { get; }
 
     /// <summary>
-    /// The exception related to the entry.
+    /// The exception related to the log entry.
     /// </summary>
     public Exception? Exception { get; }
 
@@ -76,9 +76,9 @@ public readonly struct LogEntry
     public object? State => Attributes.State;
 
     /// <summary>
-    /// A collection of objects that represent a logger's current scope at the time of a log event.
-    /// The first object in the collection represents the logger's current scope, the second object
-    /// represents its parent scope, the third represents its grandparent scope, and so on.
+    /// A collection of objects that represent a logger's current scope at the time of a log event. The first object in the
+    /// collection represents the logger's current scope, the second object represents its parent scope, the third represents its
+    /// grandparent scope, and so on.
     /// </summary>
     public IEnumerable<object> Scope
     {
@@ -90,37 +90,32 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry was made at <see cref="Microsoft.Extensions.Logging.LogLevel.Trace"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
     /// </summary>
     public bool IsTrace() => HasLogLevel(LogLevel.Trace);
 
     /// <summary>
-    /// Whether the log entry was made at
-    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Debug"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Debug"/>.
     /// </summary>
     public bool IsDebug() => HasLogLevel(LogLevel.Debug);
 
     /// <summary>
-    /// Whether the log entry was made at
-    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Information"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Information"/>.
     /// </summary>
     public bool IsInformation() => HasLogLevel(LogLevel.Information);
 
     /// <summary>
-    /// Whether the log entry was made at
-    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Warning"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Warning"/>.
     /// </summary>
     public bool IsWarning() => HasLogLevel(LogLevel.Warning);
 
     /// <summary>
-    /// Whether the log entry was made at
-    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Error"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Error"/>.
     /// </summary>
     public bool IsError() => HasLogLevel(LogLevel.Error);
 
     /// <summary>
-    /// Whether the log entry was made at
-    /// <see cref="Microsoft.Extensions.Logging.LogLevel.Trace"/>.
+    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
     /// </summary>
     public bool IsCritical() => HasLogLevel(LogLevel.Critical);
 
@@ -133,8 +128,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has a level that matches the specified predicate.
     /// </summary>
-    /// <param name="logLevelPredicate">A function the returns whether the log entry's level is a
-    /// match.</param>
+    /// <param name="logLevelPredicate">A function the returns whether the log entry's level is a match.</param>
     public bool HasLogLevel(Func<LogLevel, bool> logLevelPredicate)
     {
         ThrowIfNull(logLevelPredicate);
@@ -151,8 +145,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has an Id that matches the specified predicate.
     /// </summary>
-    /// <param name="eventIdPredicate">A function that determines whether the log entry's Id is a
-    /// match.</param>
+    /// <param name="eventIdPredicate">A function that determines whether the log entry's Id is a match.</param>
     public bool HasEventId(Func<EventId, bool> eventIdPredicate)
     {
         ThrowIfNull(eventIdPredicate);
@@ -175,8 +168,7 @@ public readonly struct LogEntry
     /// Whether the log entry has the specified message.
     /// </summary>
     /// <param name="expectedMessage">The message to check.</param>
-    /// <param name="stringComparison">One of the enumeration values that specifies the rules for
-    /// the comparison.</param>
+    /// <param name="stringComparison">One of the enumeration values that specifies the rules for the comparison.</param>
     public bool HasMessage(string expectedMessage, StringComparison stringComparison)
     {
         ThrowIfNull(expectedMessage);
@@ -187,8 +179,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has a message that matches the specified predicate.
     /// </summary>
-    /// <param name="messagePredicate">A function that determines whether the log entry's message
-    /// is a match.</param>
+    /// <param name="messagePredicate">A function that determines whether the log entry's message is a match.</param>
     public bool HasMessage(Func<string, bool> messagePredicate)
     {
         ThrowIfNull(messagePredicate);
@@ -211,8 +202,7 @@ public readonly struct LogEntry
     /// Whether the log entry has a message that matches the specified regular expression.
     /// </summary>
     /// <param name="regexPattern">The regular expression pattern to match.</param>
-    /// <param name="regexOptions">A bitwise combination of the enumeration values that provide
-    /// options for matching.</param>
+    /// <param name="regexOptions">A bitwise combination of the enumeration values that provide options for matching.</param>
     public bool HasMessageMatching(
         [StringSyntax(nameof(Regex))] string regexPattern,
         RegexOptions regexOptions)
@@ -280,12 +270,10 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry has an attribute with the specified key and a value that matches the
-    /// specified predicate.
+    /// Whether the log entry has an attribute with the specified key and a value that matches the specified predicate.
     /// </summary>
     /// <param name="key">The key to match.</param>
-    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key
-    /// is a match.</param>
+    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key is a match.</param>
     public bool HasAttribute(string key, Func<object, bool> valuePredicate)
     {
         ThrowIfNull(key);
@@ -301,13 +289,11 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry has an attribute with the specified key and a value that matches the
-    /// specified predicate.
+    /// Whether the log entry has an attribute with the specified key and a value that matches the specified predicate.
     /// </summary>
     /// <typeparam name="T">The expected type of the value.</typeparam>
     /// <param name="key">The key to match.</param>
-    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key
-    /// is a match.</param>
+    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key is a match.</param>
     public bool HasAttribute<T>(string key, Func<T, bool> valuePredicate)
         where T : notnull
     {
@@ -361,8 +347,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made with a state that matches the specified predicate.
     /// </summary>
-    /// <param name="statePredicate">A function that determines whether the log entry's state
-    /// is a match.</param>
+    /// <param name="statePredicate">A function that determines whether the log entry's state is a match.</param>
     public bool HasState(Func<object?, bool> statePredicate)
     {
         ThrowIfNull(statePredicate);
@@ -374,8 +359,7 @@ public readonly struct LogEntry
     /// Whether the log entry was made with a state that matches the specified predicate.
     /// </summary>
     /// <typeparam name="TState">The expectetd type of the state.</typeparam>
-    /// <param name="statePredicate">A function that determines whether the log entry's state
-    /// is a match.</param>
+    /// <param name="statePredicate">A function that determines whether the log entry's state is a match.</param>
     public bool HasState<TState>(Func<TState, bool> statePredicate)
     {
         ThrowIfNull(statePredicate);
@@ -433,8 +417,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made with a logger scope that matches the specified predicate.
     /// </summary>
-    /// <param name="scopePredicate">A function that determines whether the logger scope is a
-    /// match.</param>
+    /// <param name="scopePredicate">A function that determines whether the logger scope is a match.</param>
     public bool HasScope(Func<object, bool> scopePredicate)
     {
         ThrowIfNull(scopePredicate);
@@ -452,8 +435,7 @@ public readonly struct LogEntry
     /// Whether the log entry was made with a logger scope that matches the specified predicate.
     /// </summary>
     /// <typeparam name="TState">The expected type of the logger scope.</typeparam>
-    /// <param name="scopePredicate">A function that determines whether the logger scope is a
-    /// match.</param>
+    /// <param name="scopePredicate">A function that determines whether the logger scope is a match.</param>
     public bool HasScope<TState>(Func<TState, bool> scopePredicate)
         where TState : notnull
     {
@@ -495,8 +477,7 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry has an exception that matches the specified predicate.
     /// </summary>
-    /// <param name="exceptionPredicate">A function that determines whether the log entry's
-    /// exception is a match.</param>
+    /// <param name="exceptionPredicate">A function that determines whether the log entry's exception is a match.</param>
     public bool HasException(Func<Exception?, bool> exceptionPredicate)
     {
         ThrowIfNull(exceptionPredicate);
@@ -505,12 +486,10 @@ public readonly struct LogEntry
     }
 
     /// <summary>
-    /// Whether the log entry has an exception of type <typeparamref name="TException"/> that
-    /// matches the specified predicate.
+    /// Whether the log entry has an exception of type <typeparamref name="TException"/> that matches the specified predicate.
     /// </summary>
     /// <typeparam name="TException">The expected type of exception.</typeparam>
-    /// <param name="exceptionPredicate">A function that determines whether the log entry's
-    /// exception is a match.</param>
+    /// <param name="exceptionPredicate">A function that determines whether the log entry's exception is a match.</param>
     public bool HasException<TException>(Func<TException, bool> exceptionPredicate)
         where TException : Exception
     {
@@ -519,7 +498,10 @@ public readonly struct LogEntry
         return Exception is TException tException && exceptionPredicate(tException);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Returns a string that represents the current log entry.
+    /// </summary>
+    /// <returns>A string that represents the current log entry.</returns>
     public override string ToString()
     {
         var sb = StringBuilderPool.Get();
