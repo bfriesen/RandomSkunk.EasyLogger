@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace RandomSkunk.EasyLogging;
+namespace RandomSkunk.Logging;
 
 /// <summary>
 /// Represents a collection of key/value pairs derived from the state and scope of a log entry.

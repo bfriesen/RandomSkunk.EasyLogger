@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NSubstitute;
 
-namespace RandomSkunk.EasyLogging.Tests;
+namespace RandomSkunk.Logging.Tests;
 
 public class MockEasyLoggerTests
 {

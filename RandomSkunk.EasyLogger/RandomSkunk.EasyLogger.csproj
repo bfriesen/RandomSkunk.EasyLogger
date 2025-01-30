@@ -5,8 +5,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<RootNamespace>RandomSkunk.Logging</RootNamespace>
 
-		<Title>RandomSkunk.EasyLogging</Title>
+		<Title>RandomSkunk.EasyLogger</Title>
 		<Description>A simple, low-allocation logger. Easy to implement, easy to mock.</Description>
 		<Authors>Brian Friesen</Authors>
 		<Copyright>Copyright 2025 (c) Brian Friesen. All rights reserved.</Copyright>

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
 
-namespace RandomSkunk.EasyLogging.Tests;
+namespace RandomSkunk.Logging.Tests;
 
 public class EasyLoggerTests
 {

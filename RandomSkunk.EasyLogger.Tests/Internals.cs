@@ -1,5 +1,4 @@
-﻿
-namespace RandomSkunk.EasyLogging.Tests;
+﻿namespace RandomSkunk.Logging.Tests;
 
 internal class ConcreteEasyLogger : EasyLogger
 {

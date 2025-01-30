@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
-namespace RandomSkunk.EasyLogging;
+namespace RandomSkunk.Logging;
 
 #if NET7_0_OR_GREATER
 using static ArgumentNullException;

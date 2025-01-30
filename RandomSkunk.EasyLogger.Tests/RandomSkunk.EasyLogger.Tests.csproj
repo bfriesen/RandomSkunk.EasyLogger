@@ -5,6 +5,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<RootNamespace>RandomSkunk.Logging.Tests</RootNamespace>
 
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
@@ -28,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\RandomSkunk.EasyLogging\RandomSkunk.EasyLogging.csproj" />
+		<ProjectReference Include="..\RandomSkunk.EasyLogger\RandomSkunk.EasyLogger.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
-namespace RandomSkunk.EasyLogging.Tests;
+namespace RandomSkunk.Logging.Tests;
 
 public class LogEntryTests
 {
