@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+*No notable changes have been made.*
+
+## [1.0.0-rc1] - 2025-01-30
+
 ### Added
 
 - Add initial project, solution, and package structures.
@@ -16,4 +20,5 @@ and this project adheres to [Semantic Versioning].
 [Keep a Changelog]: https://keepachangelog.com/en/1.1.0/
 [Semantic Versioning]: https://semver.org/spec/v2.0.0.html
 
-[Unreleased]: https://github.com/bfriesen/RandomSkunk.EasyLogger/compare/v0.0.0...HEAD
+[Unreleased]: https://github.com/bfriesen/RandomSkunk.EasyLogger/compare/v1.0.0-rc1...HEAD
+[1.0.0-rc1]: https://github.com/bfriesen/RandomSkunk.Results/compare/v0.0.0...v1.0.0-rc1
