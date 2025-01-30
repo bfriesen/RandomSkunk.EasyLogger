@@ -35,6 +35,8 @@ public abstract class EasyLogger : ILogger
     private readonly AsyncLocal<Scope?> _currentScope = new();
 
     private LogLevel _minimumLogLevel = LogLevel.Information;
+    private bool _includeScopes = true;
+    private bool _includeScopesLocked;
 
     /// <summary>
     /// Gets or sets the minimum log level that the logger should write.
@@ -55,12 +57,22 @@ public abstract class EasyLogger : ILogger
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether scopes should be included in log entries.
+    /// Gets or sets a value indicating whether scopes should be included in log entries. Default value is
+    /// <see langword="true"/>.
     /// </summary>
     /// <remarks>
-    /// Default value is <see langword="true"/>.
+    /// This property can only be changed before the logger is used. After the logger is used, attempting to change this property
+    /// does nothing.
     /// </remarks>
-    public bool IncludeScopes { get; init; } = true;
+    public bool IncludeScopes
+    {
+        get => _includeScopes;
+        set
+        {
+            if (!_includeScopesLocked)
+                _includeScopes = value;
+        }
+    }
 
     /// <summary>
     /// Gets a collection that represents the logger's current scope stack.
@@ -69,7 +81,7 @@ public abstract class EasyLogger : ILogger
     {
         get
         {
-            if (!IncludeScopes)
+            if (!LockAndGetIncludeScopes())
                 yield break;
 
             for (var scope = _currentScope.Value; scope is not null; scope = scope.ParentScope)
@@ -99,7 +111,7 @@ public abstract class EasyLogger : ILogger
             return;
 
         var getMessage = () => formatter(state, exception);
-        var currentScope = IncludeScopes ? _currentScope.Value : null;
+        var currentScope = LockAndGetIncludeScopes() ? _currentScope.Value : null;
         var attributes = new LogAttributes(state, currentScope);
         var logEntry = new LogEntry(logLevel, eventId, getMessage, attributes, exception);
         Write(logEntry);
@@ -120,7 +132,7 @@ public abstract class EasyLogger : ILogger
     {
         ThrowIfNull(state);
 
-        if (IncludeScopes)
+        if (LockAndGetIncludeScopes())
             return _currentScope.Value = new Scope(state, this);
 
         return null;
@@ -128,7 +140,8 @@ public abstract class EasyLogger : ILogger
 
     private void EndScope(Scope scope)
     {
-        Debug.Assert(IncludeScopes);
+        Debug.Assert(_includeScopes);
+        Debug.Assert(_includeScopesLocked);
 
         // Gracefully handle the possibility of scopes disposing out of order.
         while (_currentScope.Value is not null)
@@ -143,6 +156,12 @@ public abstract class EasyLogger : ILogger
                 _currentScope.Value = _currentScope.Value.ParentScope;
             }
         }
+    }
+
+    private bool LockAndGetIncludeScopes()
+    {
+        _includeScopesLocked = true;
+        return _includeScopes;
     }
 
     private sealed class Scope(object state, EasyLogger logger)

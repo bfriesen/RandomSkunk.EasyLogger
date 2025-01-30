@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
-*No notable changes have been made.*
+### Changed
+
+- The `EasyLogger.IncludeScopes` property is no longer init-only. However, once the logger is used, attempting to change `IncludeScopes` does noting.
 
 ## [1.0.0-rc1] - 2025-01-30
 
