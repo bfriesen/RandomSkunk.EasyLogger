@@ -1,4 +1,4 @@
-# RandomSkunk.EasyLogging
+# RandomSkunk.EasyLogger
 
 This library provides two simple logger base classes, `EasyLogger` and `EasyLogger<TCategoryName>`,
 which implement `ILogger` and `ILogger<TCategoryName>` respectively.

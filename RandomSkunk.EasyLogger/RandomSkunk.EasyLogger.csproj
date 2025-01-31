@@ -13,9 +13,9 @@
 		<Copyright>Copyright 2025 (c) Brian Friesen. All rights reserved.</Copyright>
 
 		<PackageId>$(Title)</PackageId>
-		<PackageVersion>1.0.0-rc1</PackageVersion>
+		<PackageVersion>1.0.0</PackageVersion>
 		<PackageReleaseNotes>https://github.com/bfriesen/RandomSkunk.EasyLogger/blob/main/CHANGELOG.md#$(PackageVersion.Replace(".", ""))---$([System.DateTime]::Now.ToString("yyyy-MM-dd"))</PackageReleaseNotes>
-		<PackageProjectUrl>https://github.com/bfriesen/RandomSkunk.EasyLogging</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/bfriesen/RandomSkunk.EasyLogger</PackageProjectUrl>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
