@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Added
+
+- Add LINQPad samples to the nuget package.
+
 ### Changed
 
 - The `EasyLogger.IncludeScopes` property is no longer init-only. However, once the logger is used, attempting to change `IncludeScopes` does noting.

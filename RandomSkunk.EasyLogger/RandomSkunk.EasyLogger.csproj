@@ -19,7 +19,7 @@
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
-		<PackageTags>Logging;Easy;Mock</PackageTags>
+		<PackageTags>Logging;Easy;Mock;linqpad-samples</PackageTags>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -51,6 +51,7 @@
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\LICENSE" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
+		<None Include="linqpad-samples\**" Pack="true" PackagePath="\linqpad-samples" />
 	</ItemGroup>
 
 </Project>
