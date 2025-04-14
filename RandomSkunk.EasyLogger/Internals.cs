@@ -114,6 +114,11 @@ internal static class TypeExtensions
             });
 }
 
+internal static class TypeOf<T>
+{
+    public static readonly bool IsReferenceType = !typeof(T).IsValueType;
+}
+
 #if !NET7_0_OR_GREATER
 internal static class ThrowHelper
 {

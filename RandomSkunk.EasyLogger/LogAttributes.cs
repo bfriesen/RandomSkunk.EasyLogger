@@ -11,6 +11,9 @@ namespace RandomSkunk.Logging;
 public readonly struct LogAttributes
     : IEnumerable<KeyValuePair<string, object>>
 {
+    internal readonly object? State;
+    internal readonly ILoggerScope? Scope;
+
     internal LogAttributes(object? state, ILoggerScope? scope)
     {
         State = state;
@@ -41,10 +44,6 @@ public readonly struct LogAttributes
             Scope = new LoggerScope(scope[i], Scope);
         }
     }
-
-    internal object? State { get; }
-
-    internal ILoggerScope? Scope { get; }
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<string, object>> GetEnumerator()

@@ -291,17 +291,16 @@ public class LogEntryTests
                 capturedEventId.Should().Be(actualEventId);
             }
 
-            //[Fact]
-            //public void ThrowsWhenParameterIsNull()
-            //{
-            //    string actualMessage = "abc";
-            //    Func<string, bool> messagePredicate = null!;
+            [Fact]
+            public void ThrowsWhenParameterIsNull()
+            {
+                Func<EventId, bool> eventIdPredicate = null!;
 
-            //    var logEntry = new LogEntry(default, 0, () => actualMessage, default, null);
+                var logEntry = new LogEntry(default, 0, () => "", default, null);
 
-            //    logEntry.Invoking(x => x.HasMessage(messagePredicate))
-            //        .Should().ThrowExactly<ArgumentNullException>();
-            //}
+                logEntry.Invoking(x => x.HasEventId(eventIdPredicate))
+                    .Should().ThrowExactly<ArgumentNullException>();
+            }
         }
     }
 
@@ -1641,39 +1640,6 @@ public class LogEntryTests
 
             public class GivenFunctionParameter
             {
-                //[Theory]
-                //[InlineData(true)]
-                //[InlineData(false)]
-                //public void ReturnsResultOfFunction(bool valueReturnedByFunction)
-                //{
-                //    // TODO: Capture
-                //    var exceptionPredicate = (InvalidOperationException exception) => valueReturnedByFunction;
-
-                //    var logEntry = new LogEntry(default, default, () => "", default, new InvalidOperationException());
-
-                //    logEntry.HasException(exceptionPredicate).Should().Be(valueReturnedByFunction);
-                //}
-
-                ////[Fact]
-                ////public void WhenLogEntryIsDefaultReturnsFalse()
-                ////{
-                ////    var messagePredicate = (string message) => true;
-
-                ////    default(LogEntry).HasMessage(messagePredicate).Should().BeFalse();
-                ////}
-
-                ////[Fact]
-                ////public void ThrowsWhenParameterIsNull()
-                ////{
-                ////    string actualMessage = "abc";
-                ////    Func<string, bool> messagePredicate = null!;
-
-                ////    var logEntry = new LogEntry(default, 0, () => actualMessage, default, null);
-
-                ////    logEntry.Invoking(x => x.HasMessage(messagePredicate))
-                ////        .Should().ThrowExactly<ArgumentNullException>();
-                ////}
-
                 [Theory]
                 [InlineData(true)]
                 [InlineData(false)]

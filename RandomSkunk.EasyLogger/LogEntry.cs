@@ -20,12 +20,18 @@ using static ThrowHelper;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct LogEntry
 {
+    private readonly LogLevel _logLevel;
+    private readonly EventId _eventId;
+    private readonly Func<string> _getMessage;
+    private readonly LogAttributes _attributes;
+    private readonly Exception? _exception;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LogEntry"/> struct.
     /// </summary>
-    /// <param name="logLevel">The log level of the log entry.</param>
+    /// <param name="logLevel">The log level.</param>
     /// <param name="eventId">The Id of the log entry.</param>
-    /// <param name="getMessage">A function that gets the message of the log entry.</param>
+    /// <param name="getMessage">The function that gets the message of the log entry.</param>
     /// <param name="attributes">A collection of key/value pairs that describe the state and scope of the log entry.</param>
     /// <param name="exception">The exception related to the log entry.</param>
     /// <exception cref="ArgumentNullException">If <paramref name="getMessage"/> is <see langword="null"/>.</exception>
@@ -38,45 +44,45 @@ public readonly struct LogEntry
     {
         ThrowIfNull(getMessage);
 
-        LogLevel = logLevel;
-        EventId = eventId;
-        GetMessage = getMessage;
-        Attributes = attributes;
-        Exception = exception;
+        _logLevel = logLevel;
+        _eventId = eventId;
+        _getMessage = getMessage;
+        _attributes = attributes;
+        _exception = exception;
     }
 
     /// <summary>
-    /// The log level of the log entry.
+    /// Gets the log level.
     /// </summary>
-    public LogLevel LogLevel { get; }
+    public LogLevel LogLevel => _logLevel;
 
     /// <summary>
-    /// The Id of the log entry.
+    /// Gets the log event ID.
     /// </summary>
-    public EventId EventId { get; }
+    public EventId EventId => _eventId;
 
     /// <summary>
-    /// A function that gets the message of the log entry.
+    /// Gets the function that gets the log message.
     /// </summary>
-    public Func<string> GetMessage { get; }
+    public Func<string> GetMessage => _getMessage;
 
     /// <summary>
-    /// A collection of key/value pairs derived from the state and scope of the log entry.
+    /// Gets the collection of key/value pairs derived from the state and scope of the log.
     /// </summary>
-    public LogAttributes Attributes { get; }
+    public LogAttributes Attributes => _attributes;
 
     /// <summary>
-    /// The exception related to the log entry.
+    /// Gets the log exception.
     /// </summary>
-    public Exception? Exception { get; }
+    public Exception? Exception => _exception;
 
     /// <summary>
-    /// The entry to be written. Can be also an object.
+    /// Gets the state.
     /// </summary>
-    public object? State => Attributes.State;
+    public object? State => _attributes.State;
 
     /// <summary>
-    /// A collection of objects that represent a logger's current scope at the time of a log event. The first object in the
+    /// A collection of objects that represent a logger's current scope at the time of the log. The first object in the
     /// collection represents the logger's current scope, the second object represents its parent scope, the third represents its
     /// grandparent scope, and so on.
     /// </summary>
@@ -84,7 +90,7 @@ public readonly struct LogEntry
     {
         get
         {
-            for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+            for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
                 yield return scope.State;
         }
     }
@@ -123,7 +129,7 @@ public readonly struct LogEntry
     /// Whether the log entry has the specified level.
     /// </summary>
     /// <param name="expectedLogLevel">The level to check.</param>
-    public bool HasLogLevel(LogLevel expectedLogLevel) => LogLevel == expectedLogLevel;
+    public bool HasLogLevel(LogLevel expectedLogLevel) => _logLevel == expectedLogLevel;
 
     /// <summary>
     /// Whether the log entry has a level that matches the specified predicate.
@@ -133,14 +139,14 @@ public readonly struct LogEntry
     {
         ThrowIfNull(logLevelPredicate);
 
-        return logLevelPredicate(LogLevel);
+        return logLevelPredicate(_logLevel);
     }
 
     /// <summary>
     /// Whether the log entry has the specified Id.
     /// </summary>
     /// <param name="eventId">The Id to check.</param>
-    public bool HasEventId(EventId eventId) => EventId == eventId;
+    public bool HasEventId(EventId eventId) => _eventId == eventId;
 
     /// <summary>
     /// Whether the log entry has an Id that matches the specified predicate.
@@ -150,7 +156,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(eventIdPredicate);
 
-        return eventIdPredicate(EventId);
+        return eventIdPredicate(_eventId);
     }
 
     /// <summary>
@@ -161,7 +167,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(expectedMessage);
 
-        return GetMessage is not null && string.Equals(GetMessage(), expectedMessage);
+        return _getMessage is not null && string.Equals(_getMessage(), expectedMessage);
     }
 
     /// <summary>
@@ -173,7 +179,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(expectedMessage);
 
-        return GetMessage is not null && string.Equals(GetMessage(), expectedMessage, stringComparison);
+        return _getMessage is not null && string.Equals(_getMessage(), expectedMessage, stringComparison);
     }
 
     /// <summary>
@@ -184,7 +190,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(messagePredicate);
 
-        return GetMessage is not null && messagePredicate(GetMessage());
+        return _getMessage is not null && messagePredicate(_getMessage());
     }
 
     /// <summary>
@@ -195,7 +201,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(regexPattern);
 
-        return GetMessage is not null && Regex.IsMatch(GetMessage(), regexPattern);
+        return _getMessage is not null && Regex.IsMatch(_getMessage(), regexPattern);
     }
 
     /// <summary>
@@ -209,7 +215,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(regexPattern);
 
-        return GetMessage is not null && Regex.IsMatch(GetMessage(), regexPattern, regexOptions);
+        return _getMessage is not null && Regex.IsMatch(_getMessage(), regexPattern, regexOptions);
     }
 
     /// <summary>
@@ -220,7 +226,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(key);
 
-        foreach (var attribute in Attributes)
+        foreach (var attribute in _attributes)
         {
             if (attribute.Key == key)
                 return true;
@@ -239,7 +245,7 @@ public readonly struct LogEntry
         ThrowIfNull(key);
         ThrowIfNull(value);
 
-        foreach (var attribute in Attributes)
+        foreach (var attribute in _attributes)
         {
             if (attribute.Key == key && Equals(attribute.Value, value))
                 return true;
@@ -260,7 +266,7 @@ public readonly struct LogEntry
         ThrowIfNull(key);
         ThrowIfNull(value);
 
-        foreach (var attribute in Attributes)
+        foreach (var attribute in _attributes)
         {
             if (attribute.Key == key && attribute.Value is T tValue && Equals(tValue, value))
                 return true;
@@ -279,7 +285,7 @@ public readonly struct LogEntry
         ThrowIfNull(key);
         ThrowIfNull(valuePredicate);
 
-        foreach (var attribute in Attributes)
+        foreach (var attribute in _attributes)
         {
             if (attribute.Key == key && valuePredicate(attribute.Value))
                 return true;
@@ -300,7 +306,7 @@ public readonly struct LogEntry
         ThrowIfNull(key);
         ThrowIfNull(valuePredicate);
 
-        foreach (var attribute in Attributes)
+        foreach (var attribute in _attributes)
         {
             if (attribute.Key == key && attribute.Value is T tValue && valuePredicate(tValue))
                 return true;
@@ -312,12 +318,12 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made without a state.
     /// </summary>
-    public bool HasNoState() => Attributes.State is null;
+    public bool HasNoState() => _attributes.State is null;
 
     /// <summary>
     /// Whether the log entry was made with any state.
     /// </summary>
-    public bool HasState() => Attributes.State is not null;
+    public bool HasState() => _attributes.State is not null;
 
     /// <summary>
     /// Whether the log entry was made with the specified state.
@@ -326,9 +332,9 @@ public readonly struct LogEntry
     public bool HasState(object? expectedState)
     {
         if (expectedState is null)
-            return Attributes.State is null;
+            return _attributes.State is null;
 
-        return Equals(Attributes.State, expectedState);
+        return Equals(_attributes.State, expectedState);
     }
 
     /// <summary>
@@ -339,9 +345,9 @@ public readonly struct LogEntry
     public bool HasState<TState>(TState? expectedState)
     {
         if (expectedState is null)
-            return Attributes.State is null;
+            return _attributes.State is null;
 
-        return Attributes.State is TState state && Equals(state, expectedState);
+        return _attributes.State is TState state && Equals(state, expectedState);
     }
 
     /// <summary>
@@ -352,7 +358,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(statePredicate);
 
-        return statePredicate(Attributes.State);
+        return statePredicate(_attributes.State);
     }
 
     /// <summary>
@@ -364,18 +370,18 @@ public readonly struct LogEntry
     {
         ThrowIfNull(statePredicate);
 
-        return Attributes.State is TState state && statePredicate(state);
+        return _attributes.State is TState state && statePredicate(state);
     }
 
     /// <summary>
     /// Whether the log entry was made without a logger scope.
     /// </summary>
-    public bool HasNoScope() => Attributes.Scope is null;
+    public bool HasNoScope() => _attributes.Scope is null;
 
     /// <summary>
     /// Whether the log entry was made with a logger scope.
     /// </summary>
-    public bool HasScope() => Attributes.Scope is not null;
+    public bool HasScope() => _attributes.Scope is not null;
 
     /// <summary>
     /// Whether the log entry was made with the specified logger scope.
@@ -384,9 +390,9 @@ public readonly struct LogEntry
     public bool HasScope(object? expectedScope)
     {
         if (expectedScope is null)
-            return Attributes.Scope is null;
+            return _attributes.Scope is null;
 
-        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
             if (Equals(scope.State, expectedScope))
                 return true;
@@ -403,9 +409,9 @@ public readonly struct LogEntry
     public bool HasScope<TState>(TState? expectedScope)
     {
         if (expectedScope is null)
-            return Attributes.Scope is null;
+            return _attributes.Scope is null;
 
-        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
             if (scope.State is TState state && Equals(state, expectedScope))
                 return true;
@@ -422,7 +428,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(scopePredicate);
 
-        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
             if (scopePredicate(scope.State))
                 return true;
@@ -441,7 +447,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(scopePredicate);
 
-        for (var scope = Attributes.Scope; scope is not null; scope = scope.ParentScope)
+        for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
             if (scope.State is TState state && scopePredicate(state))
                 return true;
@@ -453,26 +459,26 @@ public readonly struct LogEntry
     /// <summary>
     /// Whether the log entry was made without an exception.
     /// </summary>
-    public bool HasNoException() => Exception is null;
+    public bool HasNoException() => _exception is null;
 
     /// <summary>
     /// Whether the log entry was made with any exception.
     /// </summary>
-    public bool HasException() => Exception is not null;
+    public bool HasException() => _exception is not null;
 
     /// <summary>
     /// Whether the log entry was made with an exception of type <typeparamref name="TException"/>.
     /// </summary>
     /// <typeparam name="TException">The expected type of exception.</typeparam>
     public bool HasException<TException>()
-        where TException : Exception => Exception is TException;
+        where TException : Exception => _exception is TException;
 
     /// <summary>
     /// Whether the log entry was made with the specified exception.
     /// </summary>
     /// <param name="expectedException">The exception to check (by reference).</param>
     public bool HasException(Exception? expectedException) =>
-        ReferenceEquals(Exception, expectedException);
+        ReferenceEquals(_exception, expectedException);
 
     /// <summary>
     /// Whether the log entry has an exception that matches the specified predicate.
@@ -482,7 +488,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(exceptionPredicate);
 
-        return exceptionPredicate(Exception);
+        return exceptionPredicate(_exception);
     }
 
     /// <summary>
@@ -495,7 +501,7 @@ public readonly struct LogEntry
     {
         ThrowIfNull(exceptionPredicate);
 
-        return Exception is TException tException && exceptionPredicate(tException);
+        return _exception is TException tException && exceptionPredicate(tException);
     }
 
     /// <summary>
@@ -505,14 +511,14 @@ public readonly struct LogEntry
     public override string ToString()
     {
         var sb = StringBuilderPool.Get();
-        Append(sb, LogLevel, EventId, GetMessage(), Attributes.State, Attributes.Scope, Exception);
+        Append(sb, _logLevel, _eventId, _getMessage(), _attributes.State, _attributes.Scope, _exception);
         return sb.ReturnToPool();
     }
 
     private string GetDebuggerDisplay()
     {
         var sb = new StringBuilder();
-        Append(sb, LogLevel, EventId, GetMessage(), Attributes.State, Attributes.Scope, Exception);
+        Append(sb, _logLevel, _eventId, _getMessage(), _attributes.State, _attributes.Scope, _exception);
         return sb.ToString();
     }
 

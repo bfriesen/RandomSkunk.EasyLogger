@@ -36,14 +36,10 @@ public abstract class EasyLogger : ILogger
 
     private LogLevel _minimumLogLevel = LogLevel.Information;
     private bool _includeScopes = true;
-    private bool _includeScopesLocked;
 
     /// <summary>
-    /// Gets or sets the minimum log level that the logger should write.
+    /// Gets or sets the minimum log level that the logger should write. Default value is <see cref="LogLevel.Information"/>.
     /// </summary>
-    /// <remarks>
-    /// Default value is <see cref="LogLevel.Information"/>.
-    /// </remarks>
     public LogLevel MinimumLogLevel
     {
         get => _minimumLogLevel;
@@ -57,21 +53,12 @@ public abstract class EasyLogger : ILogger
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether scopes should be included in log entries. Default value is
-    /// <see langword="true"/>.
+    /// Gets or sets a value indicating whether scopes will be included in log entries. Default value is <see langword="true"/>.
     /// </summary>
-    /// <remarks>
-    /// This property can only be changed before the logger is used. After the logger is used, attempting to change this property
-    /// does nothing.
-    /// </remarks>
     public bool IncludeScopes
     {
         get => _includeScopes;
-        set
-        {
-            if (!_includeScopesLocked)
-                _includeScopes = value;
-        }
+        set => _includeScopes = value;
     }
 
     /// <summary>
@@ -81,7 +68,7 @@ public abstract class EasyLogger : ILogger
     {
         get
         {
-            if (!LockAndGetIncludeScopes())
+            if (!_includeScopes)
                 yield break;
 
             for (var scope = _currentScope.Value; scope is not null; scope = scope.ParentScope)
@@ -93,13 +80,23 @@ public abstract class EasyLogger : ILogger
     /// When overridden in a derived class, writes the specified log entry.
     /// </summary>
     /// <remarks>
-    /// This method is called by <see cref="EasyLogger"/>'s <see cref="Log"/> method after verifying that <see cref="IsEnabled"/>
-    /// is <see langword="true"/> for the given log level.
+    /// This method is called by the logger's <see cref="ILogger.Log"/> method after verifying that <see cref="IsEnabled"/> is
+    /// <see langword="true"/> for the given log level.
     /// </remarks>
     /// <param name="logEntry">The log entry to write.</param>
     public abstract void Write(LogEntry logEntry);
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// If the specified log level is enabled according to the <see cref="IsEnabled"/> method, writes a log entry according to
+    /// the implementation of the abstract <see cref="Write"/> method.
+    /// </summary>
+    /// <param name="logLevel">Entry will be written on this level.</param>
+    /// <param name="eventId">Id of the event.</param>
+    /// <param name="state">The entry to be written. Can be also an object.</param>
+    /// <param name="exception">The exception related to this entry.</param>
+    /// <param name="formatter">Function to create a <see cref="string"/> message of the <paramref name="state"/> and
+    ///     <paramref name="exception"/>.</param>
+    /// <typeparam name="TState">The type of the object to be written.</typeparam>
     public void Log<TState>(
         LogLevel logLevel,
         EventId eventId,
@@ -107,14 +104,14 @@ public abstract class EasyLogger : ILogger
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        if (!((ILogger)this).IsEnabled(logLevel))
-            return;
-
-        var getMessage = () => formatter(state, exception);
-        var currentScope = LockAndGetIncludeScopes() ? _currentScope.Value : null;
-        var attributes = new LogAttributes(state, currentScope);
-        var logEntry = new LogEntry(logLevel, eventId, getMessage, attributes, exception);
-        Write(logEntry);
+        if (((ILogger)this).IsEnabled(logLevel))
+        {
+            var getMessage = () => formatter(state, exception);
+            var currentScope = _includeScopes ? _currentScope.Value : null;
+            var attributes = new LogAttributes(state, currentScope);
+            var logEntry = new LogEntry(logLevel, eventId, getMessage, attributes, exception);
+            Write(logEntry);
+        }
     }
 
     /// <inheritdoc/>
@@ -130,9 +127,10 @@ public abstract class EasyLogger : ILogger
     public IDisposable? BeginScope<TState>(TState state)
         where TState : notnull
     {
-        ThrowIfNull(state);
+        if (TypeOf<TState>.IsReferenceType)
+            ThrowIfNull(state);
 
-        if (LockAndGetIncludeScopes())
+        if (_includeScopes)
             return _currentScope.Value = new Scope(state, this);
 
         return null;
@@ -140,9 +138,6 @@ public abstract class EasyLogger : ILogger
 
     private void EndScope(Scope scope)
     {
-        Debug.Assert(_includeScopes);
-        Debug.Assert(_includeScopesLocked);
-
         // Gracefully handle the possibility of scopes disposing out of order.
         while (_currentScope.Value is not null)
         {
@@ -156,12 +151,6 @@ public abstract class EasyLogger : ILogger
                 _currentScope.Value = _currentScope.Value.ParentScope;
             }
         }
-    }
-
-    private bool LockAndGetIncludeScopes()
-    {
-        _includeScopesLocked = true;
-        return _includeScopes;
     }
 
     private sealed class Scope(object state, EasyLogger logger)
