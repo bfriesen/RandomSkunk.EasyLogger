@@ -26,9 +26,9 @@ public class LogEntryTests
             logEntry.EventId.Should().Be(eventId);
             logEntry.GetMessage.Should().BeSameAs(getMessage);
             logEntry.Attributes.State.Should().BeSameAs(state);
-            logEntry.Attributes.Scope.Should().NotBeNull();
-            logEntry.Attributes.Scope?.State.Should().BeSameAs(scope);
-            logEntry.Attributes.Scope!.ParentScope.Should().BeNull();
+            Assert.NotNull(logEntry.Attributes.Scope);
+            logEntry.Attributes.Scope.State.Should().BeSameAs(scope);
+            logEntry.Attributes.Scope.ParentScope.Should().BeNull();
             logEntry.Exception.Should().BeSameAs(exception);
         }
     }

@@ -181,26 +181,26 @@ public class EasyLoggerTests
             // Begin the first, outer scope.
             var scope1 = logger.BeginScope(123);
 
-            scope1.Should().NotBeNull();
+            Assert.NotNull(scope1);
             logger.CurrentScope.Should().HaveCount(1);
             logger.CurrentScope.First().Should().Be(123);
 
             // Begin the second, inner scope.
             var scope2 = logger.BeginScope(456);
 
-            scope2.Should().NotBeNull();
+            Assert.NotNull(scope2);
             logger.CurrentScope.Should().HaveCount(2);
             logger.CurrentScope.First().Should().Be(456);
             logger.CurrentScope.Skip(1).First().Should().Be(123);
 
             // Dispose the inner scope.
-            scope2!.Dispose();
+            scope2.Dispose();
 
             logger.CurrentScope.Should().HaveCount(1);
             logger.CurrentScope.First().Should().Be(123);
 
             // Dispose the outer scope.
-            scope1!.Dispose();
+            scope1.Dispose();
 
             logger.CurrentScope.Should().BeEmpty();
         }
@@ -211,18 +211,18 @@ public class EasyLoggerTests
             var logger = new ConcreteEasyLogger();
 
             // Begin the first, outer scope.
-            var scope1 = logger.BeginScope(123);
+            var scope1 = logger.BeginScope(123)!;
             
             // Begin the second, inner scope.
-            var scope2 = logger.BeginScope(456);
+            var scope2 = logger.BeginScope(456)!;
 
             // Since this is the outer scope, disposing it should leave the logger without a scope.
-            scope1!.Dispose();
+            scope1.Dispose();
 
             logger.CurrentScope.Should().BeEmpty();
 
             // This should do nothing since the logger no longer has a scope.
-            scope2!.Dispose();
+            scope2.Dispose();
 
             logger.CurrentScope.Should().BeEmpty();
         }
@@ -257,8 +257,8 @@ public class EasyLoggerTests
             formatterCapturedState.Should().BeNull();
             formatterCapturedException.Should().BeNull();
 
-            logger.CapturedLogEntry.Should().NotBeNull();
-            var capturedLogEntry = logger.CapturedLogEntry!.Value;
+            Assert.NotNull(logger.CapturedLogEntry);
+            var capturedLogEntry = logger.CapturedLogEntry.Value;
             capturedLogEntry.LogLevel.Should().Be(logLevel);
             capturedLogEntry.EventId.Should().Be(eventId);
             capturedLogEntry.GetMessage().Should().Be(message);
@@ -319,9 +319,9 @@ public class EasyLoggerTests
                 }
             }
 
-            logger.CapturedLogEntry.Should().NotBeNull();
+            Assert.NotNull(logger.CapturedLogEntry);
 
-            var capturedLogEntry = logger.CapturedLogEntry!.Value;
+            var capturedLogEntry = logger.CapturedLogEntry.Value;
             logger.CapturedLogEntry = null;
 
             capturedLogEntry.LogLevel.Should().Be(logLevel);
@@ -357,11 +357,11 @@ public class EasyLoggerTests
             logger.Log(logLevel, eventId, null, exception, formatter);
 
             // The formatter should be called when the log entry's GetMessage function is called, not at initialization.
-            formatterCapturedState.Should().NotBeNull();
+            Assert.NotNull(formatterCapturedState);
             formatterCapturedException.Should().BeNull();
 
-            logger.CapturedLogEntry.Should().NotBeNull();
-            var capturedLogEntry = logger.CapturedLogEntry!.Value;
+            Assert.NotNull(logger.CapturedLogEntry);
+            var capturedLogEntry = logger.CapturedLogEntry.Value;
             capturedLogEntry.LogLevel.Should().Be(logLevel);
             capturedLogEntry.EventId.Should().Be(eventId);
             capturedLogEntry.GetMessage().Should().Be(message);

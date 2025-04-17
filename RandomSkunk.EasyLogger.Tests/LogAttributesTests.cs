@@ -31,10 +31,10 @@ public class LogAttributesTests
             var attributes = new LogAttributes(state, scope1, scope2);
 
             attributes.State.Should().BeSameAs(state);
-            attributes.Scope.Should().NotBeNull();
-            attributes.Scope?.State.Should().BeSameAs(scope1);
-            attributes.Scope?.ParentScope.Should().NotBeNull();
-            attributes.Scope?.ParentScope?.State.Should().BeSameAs(scope2);
+            Assert.NotNull(attributes.Scope);
+            attributes.Scope.State.Should().BeSameAs(scope1);
+            Assert.NotNull(attributes.Scope.ParentScope);
+            attributes.Scope.ParentScope.State.Should().BeSameAs(scope2);
         }
     }
 
@@ -209,7 +209,7 @@ public class LogAttributesTests
         {
             var attributes = default(LogAttributes).ToList();
 
-            attributes.Should().NotBeNull();
+            Assert.NotNull(attributes);
             attributes.Should().BeEmpty();
         }
     }
