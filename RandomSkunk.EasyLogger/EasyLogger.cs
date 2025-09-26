@@ -5,12 +5,6 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace RandomSkunk.Logging;
 
-#if NET7_0_OR_GREATER
-using static ArgumentNullException;
-#else
-using static ThrowHelper;
-#endif
-
 /// <summary>
 /// An implementation of the <see cref="ILogger"/> interface. It is designed to fulfill the following requirements:
 /// <list type="bullet">

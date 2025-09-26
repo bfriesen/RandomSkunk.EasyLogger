@@ -8,12 +8,6 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace RandomSkunk.Logging;
 
-#if NET7_0_OR_GREATER
-using static ArgumentNullException;
-#else
-using static ThrowHelper;
-#endif
-
 /// <summary>
 /// Defines a log event.
 /// </summary>

@@ -118,18 +118,3 @@ internal static class TypeOf<T>
 {
     public static readonly bool IsReferenceType = !typeof(T).IsValueType;
 }
-
-#if !NET7_0_OR_GREATER
-internal static class ThrowHelper
-{
-    public static void ThrowIfNull(
-        [System.Diagnostics.CodeAnalysis.NotNull] object? argument,
-        [CallerArgumentExpression(nameof(argument))] string? paramName = null)
-    {
-        if (argument is null)
-        {
-            throw new ArgumentNullException(paramName);
-        }
-    }
-}
-#endif
