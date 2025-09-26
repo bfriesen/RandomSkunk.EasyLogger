@@ -14,6 +14,19 @@ namespace RandomSkunk.Logging;
 public abstract class HighPerformanceLogger : LoggerBase, ILogger
 {
     /// <summary>
+    /// Initializes a new instance of the <see cref="HighPerformanceLogger"/> class.
+    /// </summary>
+    protected HighPerformanceLogger()
+        : base()
+    {
+    }
+
+    private protected HighPerformanceLogger(string category)
+        : base(category)
+    {        
+    }
+
+    /// <summary>
     /// When overridden in a derived class, writes the specified log entry.
     /// </summary>
     /// <param name="logEntry">The log entry to write.</param>
@@ -47,4 +60,11 @@ public abstract class HighPerformanceLogger : LoggerBase, ILogger
 /// <typeparam name="TCategoryName">The type whose name is used for the logger category name.</typeparam>
 public abstract class HighPerformanceLogger<TCategoryName> : HighPerformanceLogger, ILogger<TCategoryName>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HighPerformanceLogger{TCategoryName}"/> class.
+    /// </summary>
+    protected HighPerformanceLogger()
+        : base(typeof(TCategoryName).ToString())
+    {
+    }
 }

@@ -3,14 +3,39 @@
 namespace RandomSkunk.Logging;
 
 /// <summary>
-/// Provides a base implementation for a logger that supports scoped logging and configurable log levels.
+/// Provides an abstract base class for logger implementations that manage scopes, categories, and log levels.
 /// </summary>
 public abstract class LoggerBase
 {
     private readonly AsyncLocal<Scope?> _currentScope = new();
 
+    private string _category;
     private bool _includeScopes = true;
     private LogLevel _minimumLogLevel = LogLevel.Information;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EasyLogger"/> class.
+    /// </summary>
+    protected LoggerBase() => _category = GetType().ToString();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoggerBase"/> class with the specified category.
+    /// </summary>
+    /// <param name="category">The category name associated with the logger.</param>
+    protected LoggerBase(string category) => _category = category ?? throw new ArgumentNullException(nameof(category));
+
+    /// <summary>
+    /// Gets or sets the category name for the logger.
+    /// </summary>
+    public string Category
+    {
+        get => _category;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _category = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the minimum log level that the logger should write. Default value is <see cref="LogLevel.Information"/>.
@@ -83,7 +108,7 @@ public abstract class LoggerBase
     {
         Scope? scope = _includeScopes ? _currentScope.Value : null;
         LogAttributes<TState> attributes = new(in state, scope);
-        logEntry = new(logLevel, in eventId, exception, formatter, in attributes);
+        logEntry = new(_category, logLevel, in eventId, exception, formatter, in attributes);
     }
 
     private void EndScope(Scope disposingScope)

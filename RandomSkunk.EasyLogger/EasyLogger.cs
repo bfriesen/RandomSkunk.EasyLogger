@@ -26,6 +26,19 @@ namespace RandomSkunk.Logging;
 public abstract class EasyLogger : LoggerBase, ILogger
 {
     /// <summary>
+    /// Initializes a new instance of the <see cref="EasyLogger"/> class.
+    /// </summary>
+    protected EasyLogger()
+        : base()
+    {
+    }
+
+    private protected EasyLogger(string category)
+        : base(category)
+    {
+    }
+
+    /// <summary>
     /// When overridden in a derived class, writes the specified log entry.
     /// </summary>
     /// <param name="logEntry">The log entry to write.</param>
@@ -68,4 +81,11 @@ public abstract class EasyLogger : LoggerBase, ILogger
 /// </remarks>
 public abstract class EasyLogger<TCategoryName> : EasyLogger, ILogger<TCategoryName>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EasyLogger{TCategoryName}"/> class.
+    /// </summary>
+    protected EasyLogger()
+        : base(typeof(TCategoryName).ToString())
+    {
+    }
 }

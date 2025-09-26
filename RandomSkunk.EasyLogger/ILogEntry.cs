@@ -11,6 +11,11 @@ namespace RandomSkunk.Logging;
 public interface ILogEntry
 {
     /// <summary>
+    /// Gets the log category.
+    /// </summary>
+    string Category { get; }
+
+    /// <summary>
     /// Gets the log level.
     /// </summary>
     LogLevel LogLevel { get; }
@@ -46,6 +51,24 @@ public interface ILogEntry
     /// grandparent scope, and so on.
     /// </summary>
     ScopeCollection Scope { get; }
+
+    /// <summary>
+    /// Whether the log entry has the specified category.
+    /// </summary>
+    /// <param name="category">The category to check.</param>
+    bool HasCategory(string category);
+
+    /// <summary>
+    /// Whether the log entry has a category specified by <typeparamref name="TCategoryName"/>.
+    /// </summary>
+    /// <typeparam name="TCategoryName">The type whose name is used for the expected logger category name.</typeparam>
+    bool HasCategory<TCategoryName>();
+
+    /// <summary>
+    /// Whether the log entry has a category that matches the specified predicate.
+    /// </summary>
+    /// <param name="categoryPredicate">A function the returns whether the log entry's category is a match.</param>
+    bool HasCategory(Func<string, bool> categoryPredicate);
 
     /// <summary>
     /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.

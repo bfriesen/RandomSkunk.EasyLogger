@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 using System.Text.RegularExpressions;
 
 namespace RandomSkunk.Logging.Tests;
@@ -12,6 +13,7 @@ public class LogEntryTests
         public void SetsAllProperties()
         {
             const string message = "Hello world!";
+            var category = "ExampleCategory";
             var logLevel = LogLevel.Warning;
             var eventId = new EventId(123);
             Func<string, Exception?, string> formatter = (state, exception) => message;
@@ -20,8 +22,9 @@ public class LogEntryTests
             var logAttributes = new LogAttributes<string>(state, scope);
             var exception = new Exception();
 
-            var logEntry = new LogEntry<string>(logLevel, eventId, exception, formatter, logAttributes);
+            var logEntry = new LogEntry<string>(category, logLevel, eventId, exception, formatter, logAttributes);
 
+            logEntry.Category.Should().Be(category);
             logEntry.LogLevel.Should().Be(logLevel);
             logEntry.EventId.Should().Be(eventId);
             logEntry.Attributes.State.Should().BeSameAs(state);
@@ -32,12 +35,72 @@ public class LogEntryTests
         }
     }
 
+    public class HasCategoryMethod
+    {
+        public class GivenStringParameter
+        {
+            [Fact]
+            public void ReturnsTrueWhenEqual()
+            {
+                var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory("ExampleCategory").Should().BeTrue();
+            }
+
+            [Fact]
+            public void ReturnsFalseWhenNotEqual()
+            {
+                var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory("AnotherCategory").Should().BeFalse();
+            }
+        }
+
+        public class GivenGenericArgument
+        {
+            [Fact]
+            public void ReturnsTrueWhenEqual()
+            {
+                var logEntry = new LogEntry<object>(typeof(GivenGenericArgument).ToString(), LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory<GivenGenericArgument>().Should().BeTrue();
+            }
+
+            [Fact]
+            public void ReturnsFalseWhenNotEqual()
+            {
+                var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory<GivenGenericArgument>().Should().BeFalse();
+            }
+        }
+
+        public class GivenPredicateParameter
+        {
+            [Fact]
+            public void ReturnsTrueWhenPredicateReturnsTrue()
+            {
+                var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory(category => category == "ExampleCategory").Should().BeTrue();
+            }
+
+            [Fact]
+            public void ReturnsFalseWhenPredicateReturnsFalse()
+            {
+                var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
+
+                logEntry.HasCategory(category => category == "AnotherCategory").Should().BeFalse();
+            }
+        }
+    }
+
     public class IsTraceMethod
     {
         [Fact]
         public void ReturnsTrueForTraceLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Trace, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Trace, 0, null, (state, exception) => "", default);
 
             logEntry.IsTrace().Should().BeTrue();
         }
@@ -50,7 +113,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Critical)]
         public void ReturnsFalseForNonTraceLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsTrace().Should().BeFalse();
         }
@@ -61,7 +124,7 @@ public class LogEntryTests
         [Fact]
         public void ReturnsTrueForDebugLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Debug, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Debug, 0, null, (state, exception) => "", default);
 
             logEntry.IsDebug().Should().BeTrue();
         }
@@ -74,7 +137,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Critical)]
         public void ReturnsFalseForNonDebugLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsDebug().Should().BeFalse();
         }
@@ -85,7 +148,7 @@ public class LogEntryTests
         [Fact]
         public void ReturnsTrueForInformationLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Information, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Information, 0, null, (state, exception) => "", default);
 
             logEntry.IsInformation().Should().BeTrue();
         }
@@ -98,7 +161,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Critical)]
         public void ReturnsFalseForNonInformationLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsInformation().Should().BeFalse();
         }
@@ -109,7 +172,7 @@ public class LogEntryTests
         [Fact]
         public void ReturnsTrueForWarningLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Warning, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "", default);
 
             logEntry.IsWarning().Should().BeTrue();
         }
@@ -122,7 +185,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Critical)]
         public void ReturnsFalseForNonWarningLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsWarning().Should().BeFalse();
         }
@@ -133,7 +196,7 @@ public class LogEntryTests
         [Fact]
         public void ReturnsTrueForErrorLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Error, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Error, 0, null, (state, exception) => "", default);
 
             logEntry.IsError().Should().BeTrue();
         }
@@ -146,7 +209,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Critical)]
         public void ReturnsFalseForNonErrorLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsError().Should().BeFalse();
         }
@@ -157,7 +220,7 @@ public class LogEntryTests
         [Fact]
         public void ReturnsTrueForCriticalLogs()
         {
-            var logEntry = new LogEntry<object>(LogLevel.Critical, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", LogLevel.Critical, 0, null, (state, exception) => "", default);
 
             logEntry.IsCritical().Should().BeTrue();
         }
@@ -170,7 +233,7 @@ public class LogEntryTests
         [InlineData(LogLevel.Error)]
         public void ReturnsFalseForNonCriticalLogs(LogLevel logLevel)
         {
-            var logEntry = new LogEntry<object>(logLevel, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", logLevel, 0, null, (state, exception) => "", default);
 
             logEntry.IsCritical().Should().BeFalse();
         }
@@ -186,7 +249,7 @@ public class LogEntryTests
                 LogLevel actualLogLevel = LogLevel.Error;
                 LogLevel expectedLogLevel = actualLogLevel;
 
-                var logEntry = new LogEntry<object>(actualLogLevel, 0, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", actualLogLevel, 0, null, (state, exception) => "", default);
 
                 logEntry.HasLogLevel(expectedLogLevel).Should().BeTrue();
             }
@@ -197,7 +260,7 @@ public class LogEntryTests
                 LogLevel actualLogLevel = LogLevel.Error;
                 LogLevel expectedLogLevel = LogLevel.Warning;
 
-                var logEntry = new LogEntry<object>(actualLogLevel, 0, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", actualLogLevel, 0, null, (state, exception) => "", default);
 
                 logEntry.HasLogLevel(expectedLogLevel).Should().BeFalse();
             }
@@ -219,7 +282,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object>(actualLogLevel, 0, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", actualLogLevel, 0, null, (state, exception) => "", default);
 
                 logEntry.HasLogLevel(logLevelPredicate).Should().Be(valueReturnedByFunction);
 
@@ -232,7 +295,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 Func<string, bool> messagePredicate = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessage(messagePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -250,7 +313,7 @@ public class LogEntryTests
                 EventId actualEventId = 123;
                 EventId expectedEventId = actualEventId;
 
-                var logEntry = new LogEntry<object>(default, actualEventId, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, actualEventId, null, (state, exception) => "", default);
 
                 logEntry.HasEventId(expectedEventId).Should().BeTrue();
             }
@@ -261,7 +324,7 @@ public class LogEntryTests
                 EventId actualEventId = 123;
                 EventId expectedEventId = 456;
 
-                var logEntry = new LogEntry<object>(default, actualEventId, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, actualEventId, null, (state, exception) => "", default);
 
                 logEntry.HasEventId(expectedEventId).Should().BeFalse();
             }
@@ -283,7 +346,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object>(default, actualEventId, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, actualEventId, null, (state, exception) => "", default);
 
                 logEntry.HasEventId(eventIdPredicate).Should().Be(valueReturnedByFunction);
 
@@ -295,7 +358,7 @@ public class LogEntryTests
             {
                 Func<EventId, bool> eventIdPredicate = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => "", default);
 
                 logEntry.Invoking(x => x.HasEventId(eventIdPredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -313,7 +376,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 string expectedMessage = actualMessage;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessage(expectedMessage).Should().BeTrue();
             }
@@ -324,7 +387,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 string expectedMessage = "xyz";
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessage(expectedMessage).Should().BeFalse();
             }
@@ -343,7 +406,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 string expectedMessage = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessage(expectedMessage))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -359,7 +422,7 @@ public class LogEntryTests
                 string expectedMessage = "ABC";
                 StringComparison comparison = StringComparison.OrdinalIgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessage(expectedMessage, comparison).Should().BeTrue();
             }
@@ -371,7 +434,7 @@ public class LogEntryTests
                 string expectedMessage = "XYZ";
                 StringComparison comparison = StringComparison.OrdinalIgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessage(expectedMessage, comparison).Should().BeFalse();
             }
@@ -392,7 +455,7 @@ public class LogEntryTests
                 string expectedMessage = null!;
                 StringComparison comparison = StringComparison.OrdinalIgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessage(expectedMessage, comparison))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -414,7 +477,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object>(default, default, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, default, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessage(messagePredicate).Should().Be(valueReturnedByFunction);
 
@@ -435,7 +498,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 Func<string, bool> messagePredicate = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessage(messagePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -453,7 +516,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 string regexPattern = "^[abc]{3}$";
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessageMatching(regexPattern).Should().BeTrue();
             }
@@ -464,7 +527,7 @@ public class LogEntryTests
                 string actualMessage = "abcc";
                 string regexPattern = "^[abc]{3}$";
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessageMatching(regexPattern).Should().BeFalse();
             }
@@ -483,7 +546,7 @@ public class LogEntryTests
                 string actualMessage = "abc";
                 string regexPattern = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessageMatching(regexPattern))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -499,7 +562,7 @@ public class LogEntryTests
                 string regexPattern = "^[abc]{3}$";
                 RegexOptions regexOptions = RegexOptions.IgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessageMatching(regexPattern, regexOptions).Should().BeTrue();
             }
@@ -511,7 +574,7 @@ public class LogEntryTests
                 string regexPattern = "^[abc]{3}$";
                 RegexOptions regexOptions = RegexOptions.IgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.HasMessageMatching(regexPattern, regexOptions).Should().BeFalse();
             }
@@ -532,7 +595,7 @@ public class LogEntryTests
                 string regexPattern = null!;
                 RegexOptions regexOptions = RegexOptions.IgnoreCase;
 
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => actualMessage, default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => actualMessage, default);
 
                 logEntry.Invoking(x => x.HasMessageMatching(regexPattern, regexOptions))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -550,7 +613,7 @@ public class LogEntryTests
                 string myKey = "My Key";
                 KeyValuePair<string, object> item = new(myKey, 123);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute(myKey).Should().BeTrue();
             }
@@ -561,7 +624,7 @@ public class LogEntryTests
                 string myKey = "My Key";
                 KeyValuePair<string, object> item = new(myKey, 123);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute("Unknown Key").Should().BeFalse();
             }
@@ -578,7 +641,7 @@ public class LogEntryTests
                 string myKey = "My Key";
                 KeyValuePair<string, object> item = new(myKey, 123);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.Invoking(x => x.HasAttribute(null!))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -594,7 +657,7 @@ public class LogEntryTests
                 object myValue = 123;
                 KeyValuePair<string, object> item = new(myKey, myValue);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute(myKey, myValue).Should().BeTrue();
             }
@@ -606,7 +669,7 @@ public class LogEntryTests
                 object myValue = 123;
                 KeyValuePair<string, object> item = new(myKey, myValue);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute("Unknown Key", myValue).Should().BeFalse();
             }
@@ -621,7 +684,7 @@ public class LogEntryTests
                 KeyValuePair<string, object> item = new(myKey, myValue);
                 KeyValuePair<string, object> otherItem = new(otherKey, otherValue);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
 
                 logEntry.HasAttribute(myKey, otherValue).Should().BeFalse();
             }
@@ -642,7 +705,7 @@ public class LogEntryTests
                 object myValue = 123;
                 KeyValuePair<string, object> item = new(myKey, myValue);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.Invoking(x => x.HasAttribute(null!, myValue))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -655,7 +718,7 @@ public class LogEntryTests
                 object myValue = 123;
                 KeyValuePair<string, object> item = new(myKey, myValue);
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.Invoking(x => x.HasAttribute(myKey, null!))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -678,7 +741,7 @@ public class LogEntryTests
                     return true;
                 };
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute(myKey, valuePredicate).Should().BeTrue();
 
@@ -699,7 +762,7 @@ public class LogEntryTests
                     return true;
                 };
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.HasAttribute("Unknown Key", valuePredicate).Should().BeFalse();
 
@@ -723,7 +786,7 @@ public class LogEntryTests
                     return false;
                 };
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
 
                 logEntry.HasAttribute(myKey, valuePredicate).Should().BeFalse();
 
@@ -761,7 +824,7 @@ public class LogEntryTests
                     return false;
                 };
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.Invoking(x => x.HasAttribute(null!, valuePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -778,7 +841,7 @@ public class LogEntryTests
 
                 Func<object, bool> valuePredicate = null!;
 
-                var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                 logEntry.Invoking(x => x.HasAttribute(myKey, valuePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -796,7 +859,7 @@ public class LogEntryTests
                     int myValue = 123;
                     KeyValuePair<string, object> item = new(myKey, myValue);
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.HasAttribute(myKey, myValue).Should().BeTrue();
                 }
@@ -808,7 +871,7 @@ public class LogEntryTests
                     int myValue = 123;
                     KeyValuePair<string, object> item = new(myKey, myValue);
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.HasAttribute("Unknown Key", myValue).Should().BeFalse();
                 }
@@ -823,7 +886,7 @@ public class LogEntryTests
                     KeyValuePair<string, object> item = new(myKey, myValue);
                     KeyValuePair<string, object> otherItem = new(otherKey, otherValue);
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
 
                     logEntry.HasAttribute(myKey, otherValue).Should().BeFalse();
                 }
@@ -844,7 +907,7 @@ public class LogEntryTests
                     int myValue = 123;
                     KeyValuePair<string, object> item = new(myKey, myValue);
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.Invoking(x => x.HasAttribute(null!, myValue))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -857,7 +920,7 @@ public class LogEntryTests
                     object myValue = "My Value";
                     KeyValuePair<string, object> item = new(myKey, myValue);
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.Invoking(x => x.HasAttribute(myKey, (string)null!))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -880,7 +943,7 @@ public class LogEntryTests
                         return true;
                     };
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.HasAttribute(myKey, valuePredicate).Should().BeTrue();
 
@@ -901,7 +964,7 @@ public class LogEntryTests
                         return true;
                     };
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.HasAttribute("Unknown Key", valuePredicate).Should().BeFalse();
 
@@ -925,7 +988,7 @@ public class LogEntryTests
                         return false;
                     };
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item, otherItem]));
 
                     logEntry.HasAttribute(myKey, valuePredicate).Should().BeFalse();
 
@@ -963,7 +1026,7 @@ public class LogEntryTests
                         return false;
                     };
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.Invoking(x => x.HasAttribute(null!, valuePredicate))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -980,7 +1043,7 @@ public class LogEntryTests
 
                     Func<int, bool> valuePredicate = null!;
 
-                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>(default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
+                    var logEntry = new LogEntry<KeyValuePair<string, object>[]>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<KeyValuePair<string, object>[]>([item]));
 
                     logEntry.Invoking(x => x.HasAttribute(myKey, valuePredicate))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -994,7 +1057,7 @@ public class LogEntryTests
         [Fact]
         public void WhenStateIsNullReturnsTrue()
         {
-            var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
 
             logEntry.HasNoState().Should().BeTrue();
         }
@@ -1002,7 +1065,7 @@ public class LogEntryTests
         [Fact]
         public void WhenStateIsNotNullReturnsFalse()
         {
-            var logEntry = new LogEntry<int>(default, 0, null, (state, exception) => "", new LogAttributes<int>(123));
+            var logEntry = new LogEntry<int>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<int>(123));
 
             logEntry.HasNoState().Should().BeFalse();
         }
@@ -1021,7 +1084,7 @@ public class LogEntryTests
             [Fact]
             public void WhenStateIsNotNullReturnsTrue()
             {
-                var logEntry = new LogEntry<int>(default, 0, null, (state, exception) => "", new LogAttributes<int>(123));
+                var logEntry = new LogEntry<int>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<int>(123));
 
                 logEntry.HasState().Should().BeTrue();
             }
@@ -1029,7 +1092,7 @@ public class LogEntryTests
             [Fact]
             public void WhenStateIsNullReturnsFalse()
             {
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
 
                 logEntry.HasState().Should().BeFalse();
             }
@@ -1048,7 +1111,7 @@ public class LogEntryTests
             [InlineData(null, null)]
             public void WhenStateMatchesReturnsTrue(object? actualState, object? expectedState)
             {
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
 
                 logEntry.HasState(expectedState).Should().BeTrue();
             }
@@ -1059,7 +1122,7 @@ public class LogEntryTests
             [InlineData(null, "abc")]
             public void WhenStateDoesNotMatchReturnsFalse(object? actualState, object? expectedState)
             {
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
 
                 logEntry.HasState(expectedState).Should().BeFalse();
             }
@@ -1089,7 +1152,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
 
                 logEntry.HasState(statePredicate).Should().Be(valueReturnedByFunction);
 
@@ -1119,7 +1182,7 @@ public class LogEntryTests
                 object? actualState = "abc";
                 Func<object?, bool> statePredicate = null!;
 
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(actualState));
 
                 logEntry.Invoking(x => x.HasState(statePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -1135,7 +1198,7 @@ public class LogEntryTests
                 [InlineData(null, null)]
                 public void WhenStateMatchesReturnsTrue(string? actualState, string? expectedState)
                 {
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
 
                     logEntry.HasState(expectedState).Should().BeTrue();
                 }
@@ -1146,7 +1209,7 @@ public class LogEntryTests
                 [InlineData(null, "abc")]
                 public void WhenStateDoesNotMatchReturnsFalse(string? actualState, string? expectedState)
                 {
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
 
                     logEntry.HasState(expectedState).Should().BeFalse();
                 }
@@ -1176,7 +1239,7 @@ public class LogEntryTests
                         return valueReturnedByFunction;
                     };
 
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
 
                     logEntry.HasState(statePredicate).Should().Be(valueReturnedByFunction);
 
@@ -1205,7 +1268,7 @@ public class LogEntryTests
                     string? actualState = "abc";
                     Func<string?, bool> statePredicate = null!;
 
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<string?>(actualState));
 
                     logEntry.Invoking(x => x.HasState(statePredicate))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -1219,7 +1282,7 @@ public class LogEntryTests
         [Fact]
         public void WhenScopeIsNullReturnsTrue()
         {
-            var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
 
             logEntry.HasNoScope().Should().BeTrue();
         }
@@ -1227,7 +1290,7 @@ public class LogEntryTests
         [Fact]
         public void WhenScopeIsNotNullReturnsFalse()
         {
-            var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, 123));
+            var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, 123));
 
             logEntry.HasNoScope().Should().BeFalse();
         }
@@ -1246,7 +1309,7 @@ public class LogEntryTests
             [Fact]
             public void WhenScopeIsNotNullReturnsTrue()
             {
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, 123));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, 123));
 
                 logEntry.HasScope().Should().BeTrue();
             }
@@ -1254,7 +1317,7 @@ public class LogEntryTests
             [Fact]
             public void WhenScopeIsNullReturnsFalse()
             {
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
 
                 logEntry.HasScope().Should().BeFalse();
             }
@@ -1277,7 +1340,7 @@ public class LogEntryTests
                     actualScope is not null
                     ? new LogAttributes<object?>(null, actualScope)
                     : new LogAttributes<object?>(null);
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", attributes);
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", attributes);
 
                 logEntry.HasScope(expectedScope).Should().BeTrue();
             }
@@ -1292,7 +1355,7 @@ public class LogEntryTests
                     actualScope is not null
                     ? new LogAttributes<object?>(null, actualScope)
                     : new LogAttributes<object?>(null);
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", attributes);
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", attributes);
 
                 logEntry.HasScope(expectedScope).Should().BeFalse();
             }
@@ -1322,7 +1385,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object?>(default, default, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, default, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
 
                 logEntry.HasScope(scopePredicate).Should().Be(valueReturnedByFunction);
 
@@ -1351,7 +1414,7 @@ public class LogEntryTests
                 object actualScope = "abc";
                 Func<object, bool> scopePredicate = null!;
 
-                var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
+                var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
 
                 logEntry.Invoking(x => x.HasScope(scopePredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -1371,7 +1434,7 @@ public class LogEntryTests
                         actualScope is not null
                         ? new LogAttributes<string?>(null, actualScope)
                         : new LogAttributes<string?>(null);
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", attributes);
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", attributes);
 
                     logEntry.HasScope(expectedScope).Should().BeTrue();
                 }
@@ -1386,7 +1449,7 @@ public class LogEntryTests
                         actualScope is not null
                         ? new LogAttributes<string?>(null, actualScope)
                         : new LogAttributes<string?>(null);
-                    var logEntry = new LogEntry<string?>(default, 0, null, (state, exception) => "", attributes);
+                    var logEntry = new LogEntry<string?>("ExampleCategory", default, 0, null, (state, exception) => "", attributes);
 
                     logEntry.HasScope(expectedScope).Should().BeFalse();
                 }
@@ -1416,7 +1479,7 @@ public class LogEntryTests
                         return valueReturnedByFunction;
                     };
 
-                    var logEntry = new LogEntry<object?>(default, default, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
+                    var logEntry = new LogEntry<object?>("ExampleCategory", default, default, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
 
                     logEntry.HasScope(scopePredicate).Should().Be(valueReturnedByFunction);
 
@@ -1445,7 +1508,7 @@ public class LogEntryTests
                     string actualScope = "abc";
                     Func<string, bool> scopePredicate = null!;
 
-                    var logEntry = new LogEntry<object?>(default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
+                    var logEntry = new LogEntry<object?>("ExampleCategory", default, 0, null, (state, exception) => "", new LogAttributes<object?>(null, actualScope));
 
                     logEntry.Invoking(x => x.HasScope(scopePredicate))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -1459,7 +1522,7 @@ public class LogEntryTests
         [Fact]
         public void WhenExceptionIsNullReturnsTrue()
         {
-            var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => "", default);
 
             logEntry.HasNoException().Should().BeTrue();
         }
@@ -1467,7 +1530,7 @@ public class LogEntryTests
         [Fact]
         public void WhenExceptionIsNotNullReturnsFalse()
         {
-            var logEntry = new LogEntry<object>(default, 0, new Exception(), (state, exception) => "", default);
+            var logEntry = new LogEntry<object>("ExampleCategory", default, 0, new Exception(), (state, exception) => "", default);
 
             logEntry.HasNoException().Should().BeFalse();
         }
@@ -1486,7 +1549,7 @@ public class LogEntryTests
             [Fact]
             public void WhenExceptionIsNotNullReturnsTrue()
             {
-                var logEntry = new LogEntry<object>(default, 0, new Exception(), (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, new Exception(), (state, exception) => "", default);
 
                 logEntry.HasException().Should().BeTrue();
             }
@@ -1494,7 +1557,7 @@ public class LogEntryTests
             [Fact]
             public void WhenExceptionIsNullReturnsFalse()
             {
-                var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => "", default);
 
                 logEntry.HasException().Should().BeFalse();
             }
@@ -1514,7 +1577,7 @@ public class LogEntryTests
                 Exception? actualException = new();
                 Exception? expectedException = actualException;
 
-                var logEntry = new LogEntry<object>(default, 0, actualException, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, actualException, (state, exception) => "", default);
 
                 logEntry.HasException(expectedException).Should().BeTrue();
             }
@@ -1525,7 +1588,7 @@ public class LogEntryTests
                 Exception? actualException = new();
                 Exception? expectedException = new();
 
-                var logEntry = new LogEntry<object>(default, 0, actualException, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, actualException, (state, exception) => "", default);
 
                 logEntry.HasException(expectedException).Should().BeFalse();
             }
@@ -1536,7 +1599,7 @@ public class LogEntryTests
                 Exception? actualException = null;
                 Exception? expectedException = null;
 
-                var logEntry = new LogEntry<object>(default, 0, actualException, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, actualException, (state, exception) => "", default);
 
                 logEntry.HasException(expectedException).Should().BeTrue();
             }
@@ -1565,7 +1628,7 @@ public class LogEntryTests
                     return valueReturnedByFunction;
                 };
 
-                var logEntry = new LogEntry<object>(default, default, actualException, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, default, actualException, (state, exception) => "", default);
 
                 logEntry.HasException(exceptionPredicate).Should().Be(valueReturnedByFunction);
 
@@ -1595,7 +1658,7 @@ public class LogEntryTests
                 Exception? actualException = new();
                 Func<Exception?, bool> exceptionPredicate = null!;
 
-                var logEntry = new LogEntry<object>(default, 0, actualException, (state, exception) => "", default);
+                var logEntry = new LogEntry<object>("ExampleCategory", default, 0, actualException, (state, exception) => "", default);
 
                 logEntry.Invoking(x => x.HasException(exceptionPredicate))
                     .Should().ThrowExactly<ArgumentNullException>();
@@ -1609,7 +1672,7 @@ public class LogEntryTests
                 [Fact]
                 public void WhenExceptionHasSameTypeAsTExceptionReturnsTrue()
                 {
-                    var logEntry = new LogEntry<object>(default, 0, new InvalidOperationException(), (state, exception) => "", default);
+                    var logEntry = new LogEntry<object>("ExampleCategory", default, 0, new InvalidOperationException(), (state, exception) => "", default);
 
                     logEntry.HasException<InvalidOperationException>().Should().BeTrue();
                 }
@@ -1617,7 +1680,7 @@ public class LogEntryTests
                 [Fact]
                 public void WhenExceptionHasDifferentTypeFromTExceptionReturnsFalse()
                 {
-                    var logEntry = new LogEntry<object>(default, 0, new ArgumentException(), (state, exception) => "", default);
+                    var logEntry = new LogEntry<object>("ExampleCategory", default, 0, new ArgumentException(), (state, exception) => "", default);
 
                     logEntry.HasException<InvalidOperationException>().Should().BeFalse();
                 }
@@ -1625,7 +1688,7 @@ public class LogEntryTests
                 [Fact]
                 public void WhenExceptionIsNullReturnsFalse()
                 {
-                    var logEntry = new LogEntry<object>(default, 0, null, (state, exception) => "", default);
+                    var logEntry = new LogEntry<object>("ExampleCategory", default, 0, null, (state, exception) => "", default);
 
                     logEntry.HasException<InvalidOperationException>().Should().BeFalse();
                 }
@@ -1652,7 +1715,7 @@ public class LogEntryTests
                         return valueReturnedByFunction;
                     };
 
-                    var logEntry = new LogEntry<object>(default, default, actualException, (state, exception) => "", default);
+                    var logEntry = new LogEntry<object>("ExampleCategory", default, default, actualException, (state, exception) => "", default);
 
                     logEntry.HasException(exceptionPredicate).Should().Be(valueReturnedByFunction);
 
@@ -1681,7 +1744,7 @@ public class LogEntryTests
                     InvalidOperationException actualException = new();
                     Func<InvalidOperationException, bool> exceptionPredicate = null!;
 
-                    var logEntry = new LogEntry<object>(default, 0, actualException, (state, exception) => "", default);
+                    var logEntry = new LogEntry<object>("ExampleCategory", default, 0, actualException, (state, exception) => "", default);
 
                     logEntry.Invoking(x => x.HasException(exceptionPredicate))
                         .Should().ThrowExactly<ArgumentNullException>();
@@ -1695,7 +1758,7 @@ public class LogEntryTests
         [Fact]
         public void WorksGivenOnlyLogLevel()
         {
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1707,7 +1770,7 @@ public class LogEntryTests
         [Fact]
         public void WorksGivenLogLevelAndEventId()
         {
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 123, null, (state, exception) => "", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 123, null, (state, exception) => "", new LogAttributes<object?>(null));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1720,7 +1783,7 @@ public class LogEntryTests
         [Fact]
         public void WorksGivenLogLevelAndMessage()
         {
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, null, (state, exception) => "Hello world!", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "Hello world!", new LogAttributes<object?>(null));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1739,7 +1802,7 @@ public class LogEntryTests
                 { "bar", 123 }
             };
 
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(state));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(state));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1758,7 +1821,7 @@ public class LogEntryTests
                 { "bar", 123 }
             };
 
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null, scope));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null, scope));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1783,7 +1846,7 @@ public class LogEntryTests
                 { "qux", 789}
             };
 
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null, innerScope, outerScope));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, null, (state, exception) => "", new LogAttributes<object?>(null, innerScope, outerScope));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1799,7 +1862,7 @@ public class LogEntryTests
         {
             var exception = new InvalidOperationException("Oh, no!");
 
-            var logEntry = new LogEntry<object?>(LogLevel.Warning, 0, exception, (state, exception) => "", new LogAttributes<object?>(null));
+            var logEntry = new LogEntry<object?>("ExampleCategory", LogLevel.Warning, 0, exception, (state, exception) => "", new LogAttributes<object?>(null));
 
             logEntry.ToString().Should().Be("""
             {
@@ -1829,7 +1892,7 @@ public class LogEntryTests
 
             var exception = new InvalidOperationException("Oh, no!");
 
-            var logEntry = new LogEntry<DictionaryWithOverriddenToStringMethod>(LogLevel.Warning, 123, exception, (state, exception) => "Well, well, well.", new LogAttributes<DictionaryWithOverriddenToStringMethod>(state, innerScope, outerScope));
+            var logEntry = new LogEntry<DictionaryWithOverriddenToStringMethod>("ExampleCategory", LogLevel.Warning, 123, exception, (state, exception) => "Well, well, well.", new LogAttributes<DictionaryWithOverriddenToStringMethod>(state, innerScope, outerScope));
 
             logEntry.ToString().Should().Be("""
                 {

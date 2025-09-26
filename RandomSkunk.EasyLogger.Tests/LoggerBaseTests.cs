@@ -5,6 +5,30 @@ namespace RandomSkunk.Logging.Tests;
 
 public class LoggerBaseTests
 {
+    public class CategoryProperty
+    {
+        public class GivenNoCategoryInConstructor
+        {
+            [Fact]
+            public void ReturnsTheConcreteLoggerTypeName()
+            {
+                LoggerBase logger = new ConcreteLoggerBase();
+                logger.Category.Should().Be(typeof(ConcreteLoggerBase).ToString());
+            }
+        }
+
+        public class GivenCategoryInConstructor
+        {
+            [Fact]
+            public void ReturnsTheValuePassedToTheConstructor()
+            {
+                const string category = "MyCategory";
+                LoggerBase logger = new ConcreteLoggerBase(category);
+                logger.Category.Should().Be(category);
+            }
+        }
+    }
+
     public class MinimumLogLevelProperty
     {
         [Fact]

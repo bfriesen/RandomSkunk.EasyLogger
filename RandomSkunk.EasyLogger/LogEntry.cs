@@ -15,6 +15,7 @@ namespace RandomSkunk.Logging;
 public readonly struct LogEntry<TState> : ILogEntry
 {
     private readonly LogLevel _logLevel;
+    private readonly string? _category;
     private readonly EventId _eventId;
     private readonly Exception? _exception;
     private readonly Func<TState, Exception?, string>? _formatter;
@@ -23,26 +24,33 @@ public readonly struct LogEntry<TState> : ILogEntry
     /// <summary>
     /// Initializes a new instance of the <see cref="LogEntry{TState}"/> struct.
     /// </summary>
+    /// <param name="category">The category name for the log.</param>
     /// <param name="logLevel">Entry will be written on this level.</param>
     /// <param name="eventId">Id of the event.</param>
     /// <param name="exception">The exception related to this entry.</param>
     /// <param name="formatter">Function to create a <see cref="string"/> message of the <c>state</c> and <c>exception</c>.</param>
     /// <param name="attributes">A collection of key/value pairs that describe the state and scope of the log entry.</param>
     public LogEntry(
+        string category,
         LogLevel logLevel,
         in EventId eventId,
         Exception? exception,
         Func<TState, Exception?, string> formatter,
         in LogAttributes<TState> attributes)
     {
+        ArgumentNullException.ThrowIfNull(category);
         ArgumentNullException.ThrowIfNull(formatter);
 
+        _category = category;
         _logLevel = logLevel;
         _eventId = eventId;
         _exception = exception;
         _formatter = formatter;
         _attributes = attributes;
     }
+
+    /// <inheritdoc/>
+    public string Category => _category!;
 
     /// <inheritdoc/>
     public LogLevel LogLevel => _logLevel;
@@ -74,6 +82,25 @@ public readonly struct LogEntry<TState> : ILogEntry
 
     /// <inheritdoc/>
     public ScopeCollection Scope => new(_attributes.Scope);
+
+    /// <inheritdoc/>
+    public bool HasCategory(string category)
+    {
+        ArgumentNullException.ThrowIfNull(category);
+
+        return _category == category;
+    }
+
+    /// <inheritdoc/>
+    public bool HasCategory<TCategoryName>() => _category == typeof(TCategoryName).ToString();
+
+    /// <inheritdoc/>
+    public bool HasCategory(Func<string, bool> categoryPredicate)
+    {
+        ArgumentNullException.ThrowIfNull(categoryPredicate);
+
+        return _category is not null && categoryPredicate(_category);
+    }
 
     /// <inheritdoc/>
     public bool IsTrace() => HasLogLevel(LogLevel.Trace);

@@ -32,6 +32,29 @@ public class EasyLoggerTests
         }
     }
 
+    public class CategoryProperty
+    {
+        public class GivenNonGenericEasyLogger
+        {
+            [Fact]
+            public void ReturnsTheConcreteLoggerTypeName()
+            {
+                EasyLogger logger = new ConcreteEasyLogger();
+                logger.Category.Should().Be(typeof(ConcreteEasyLogger).ToString());
+            }
+        }
+
+        public class GivenGenericEasyLogger
+        {
+            [Fact]
+            public void ReturnsTheTypeNameOfTCategoryName()
+            {
+                EasyLogger<Identity> logger = new ConcreteEasyLogger<Identity>();
+                logger.Category.Should().Be(typeof(Identity).ToString());
+            }
+        }
+    }
+
     public class LogMethod
     {
         [Fact]

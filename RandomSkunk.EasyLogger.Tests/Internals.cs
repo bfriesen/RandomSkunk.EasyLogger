@@ -2,6 +2,14 @@
 
 internal class ConcreteLoggerBase : LoggerBase
 {
+    public ConcreteLoggerBase()
+    {        
+    }
+
+    public ConcreteLoggerBase(string category)
+        : base(category)
+    {
+    }
 }
 
 internal class ConcreteEasyLogger : EasyLogger

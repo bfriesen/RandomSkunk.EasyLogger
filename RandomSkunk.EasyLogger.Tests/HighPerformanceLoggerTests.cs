@@ -32,6 +32,29 @@ public class HighPerformanceLoggerTests
         }
     }
 
+    public class CategoryProperty
+    {
+        public class GivenNonGenericHighPerformanceLogger
+        {
+            [Fact]
+            public void ReturnsTheConcreteLoggerTypeName()
+            {
+                HighPerformanceLogger logger = new ConcreteHighPerformanceLogger();
+                logger.Category.Should().Be(typeof(ConcreteHighPerformanceLogger).ToString());
+            }
+        }
+
+        public class GivenGenericHighPerformanceLogger
+        {
+            [Fact]
+            public void ReturnsTheTypeNameOfTCategoryName()
+            {
+                HighPerformanceLogger<Identity> logger = new ConcreteHighPerformanceLogger<Identity>();
+                logger.Category.Should().Be(typeof(Identity).ToString());
+            }
+        }
+    }
+
     public class LogMethod
     {
         [Fact]
