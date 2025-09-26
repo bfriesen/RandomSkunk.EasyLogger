@@ -8,15 +8,15 @@
 
 EasyLogger logger = A.Fake<EasyLogger>();
 
-LogEntry? capturedLogEntry = null;
+ILogEntry? capturedLogEntry = null;
 
 // Setup
-A.CallTo(() => logger.Write(A<LogEntry>.Ignored))
-    .Invokes((LogEntry logEntry) => capturedLogEntry = logEntry);
+A.CallTo(() => logger.Write(A<ILogEntry>.Ignored))
+    .Invokes((ILogEntry logEntry) => capturedLogEntry = logEntry);
 
 logger.LogInformation("Hello, {Who}!", "world");
 
 // Verification
-A.CallTo(() => logger.Write(A<LogEntry>.That.Matches(log =>
+A.CallTo(() => logger.Write(A<ILogEntry>.That.Matches(log =>
     log.IsInformation() && log.HasMessage("Hello, world!") && log.HasAttribute("Who", "world"))))
     .MustHaveHappened();

@@ -8,14 +8,14 @@
 
 EasyLogger logger = Substitute.For<EasyLogger>();
 
-LogEntry? capturedLogEntry = null;
+ILogEntry? capturedLogEntry = null;
 
 // Setup
-logger.When(m => m.Write(Arg.Any<LogEntry>()))
-	.Do(x => capturedLogEntry = x.Arg<LogEntry>());
+logger.When(m => m.Write(Arg.Any<ILogEntry>()))
+	.Do(x => capturedLogEntry = x.Arg<ILogEntry>());
 
 logger.LogInformation("Hello, {Who}!", "world");
 
 // Verification
-logger.Received().Write(Arg.Is<LogEntry>(log =>
+logger.Received().Write(Arg.Is<ILogEntry>(log =>
 	log.IsInformation() && log.HasMessage("Hello, world!") && log.HasAttribute("Who", "world")));

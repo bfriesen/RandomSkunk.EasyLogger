@@ -12,7 +12,7 @@ public class LogAttributesTests
             var state = new object();
             var fakeScope = new FakeScope();
 
-            var attributes = new LogAttributes(state, fakeScope);
+            var attributes = new LogAttributes<object>(state, fakeScope);
 
             attributes.State.Should().BeSameAs(state);
             attributes.Scope.Should().BeSameAs(fakeScope);
@@ -28,7 +28,7 @@ public class LogAttributesTests
             var scope1 = "abc";
             var scope2 = "xyz";
 
-            var attributes = new LogAttributes(state, scope1, scope2);
+            var attributes = new LogAttributes<object>(state, scope1, scope2);
 
             attributes.State.Should().BeSameAs(state);
             Assert.NotNull(attributes.Scope);
@@ -49,7 +49,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(state).ToList();
+            var attributes = new LogAttributes<Dictionary<string, object>>(state).ToList();
 
             attributes.Should().HaveCount(2);
             attributes.Should().ContainKey("foo").WhoseValue.Should().Be("abc");
@@ -65,7 +65,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(state).ToList();
+            var attributes = new LogAttributes<DictionaryWithOverriddenToStringMethod>(state).ToList();
 
             attributes.Should().HaveCount(3);
             attributes.Should().ContainKey("foo").WhoseValue.Should().Be("abc");
@@ -78,7 +78,7 @@ public class LogAttributesTests
         {
             var state = new List<object> { "abc", 123 };
 
-            var attributes = new LogAttributes(state).ToList();
+            var attributes = new LogAttributes<List<object>>(state).ToList();
 
             attributes.Should().HaveCount(2);
             attributes.Should().ContainKey("State[0]").WhoseValue.Should().Be("abc");
@@ -90,7 +90,7 @@ public class LogAttributesTests
         {
             var state = new ListWithOverriddenToStringMethod("Hello world!") { "abc", 123 };
 
-            var attributes = new LogAttributes(state).ToList();
+            var attributes = new LogAttributes<ListWithOverriddenToStringMethod>(state).ToList();
 
             attributes.Should().HaveCount(3);
             attributes.Should().ContainKey("State[0]").WhoseValue.Should().Be("abc");
@@ -103,10 +103,21 @@ public class LogAttributesTests
         {
             var state = new object();
 
-            var attributes = new LogAttributes(state).ToList();
+            var attributes = new LogAttributes<object>(state).ToList();
 
             attributes.Should().HaveCount(1);
             attributes.Should().ContainKey("State").WhoseValue.Should().BeSameAs(state);
+        }
+
+        [Fact]
+        public void EnumeratesThroughStateOfOtherTypeThatOverridesToString()
+        {
+            var state = new ClassWithOverriddenToStringMethod("Hello, world!");
+
+            var attributes = new LogAttributes<object>(state).ToList();
+
+            attributes.Should().HaveCount(1);
+            attributes.Should().ContainKey("State").WhoseValue.Should().Be(state.ToString());
         }
 
         [Fact]
@@ -124,7 +135,7 @@ public class LogAttributesTests
                 { "qux", 789 }
             };
 
-            var attributes = new LogAttributes(null, innerScope, outerScope).ToList();
+            var attributes = new LogAttributes<Dictionary<string, object>>(null!, innerScope, outerScope).ToList();
 
             attributes.Should().HaveCount(4);
             attributes.Should().ContainKey("foo").WhoseValue.Should().Be("abc");
@@ -148,7 +159,7 @@ public class LogAttributesTests
                 { "qux", 789 }
             };
 
-            var attributes = new LogAttributes(null, innerScope, outerScope).ToList();
+            var attributes = new LogAttributes<object?>(null, innerScope, outerScope).ToList();
 
             attributes.Should().HaveCount(6);
             attributes.Should().ContainKey("foo").WhoseValue.Should().Be("abc");
@@ -165,7 +176,7 @@ public class LogAttributesTests
             var innerScope = new List<object> { "abc", 123 };
             var outerScope = new List<object> { "xyz", 789 };
 
-            var attributes = new LogAttributes(null, innerScope, outerScope).ToList();
+            var attributes = new LogAttributes<object?>(null, innerScope, outerScope).ToList();
 
             attributes.Should().HaveCount(4);
             attributes.Should().ContainKey("Scope[0]").WhoseValue.Should().Be("abc");
@@ -180,7 +191,7 @@ public class LogAttributesTests
             var innerScope = new ListWithOverriddenToStringMethod("Hello world!") { "abc", 123 };
             var outerScope = new ListWithOverriddenToStringMethod("Good-bye world!") { "xyz", 789 };
 
-            var attributes = new LogAttributes(null, innerScope, outerScope).ToList();
+            var attributes = new LogAttributes<object?>(null, innerScope, outerScope).ToList();
 
             attributes.Should().HaveCount(6);
             attributes.Should().ContainKey("Scope[0]").WhoseValue.Should().Be("abc");
@@ -197,7 +208,7 @@ public class LogAttributesTests
             var innerScope = new object();
             var outerScope = new object();
 
-            var attributes = new LogAttributes(null, innerScope, outerScope).ToList();
+            var attributes = new LogAttributes<object?>(null, innerScope, outerScope).ToList();
 
             attributes.Should().HaveCount(2);
             attributes.Should().ContainKey("Scope").WhoseValue.Should().BeSameAs(innerScope);
@@ -205,9 +216,22 @@ public class LogAttributesTests
         }
 
         [Fact]
+        public void EnumeratesThroughScopeOfOtherTypeThatOverridesToString()
+        {
+            var innerScope = new ClassWithOverriddenToStringMethod("Hello, world!");
+            var outerScope = new ClassWithOverriddenToStringMethod("Good-bye, world!");
+
+            var attributes = new LogAttributes<object?>(null, innerScope, outerScope).ToList();
+
+            attributes.Should().HaveCount(2);
+            attributes.Should().ContainKey("Scope").WhoseValue.Should().Be(innerScope.ToString());
+            attributes.Should().ContainKey("Scope.ParentScope").WhoseValue.Should().Be(outerScope.ToString());
+        }
+
+        [Fact]
         public void EnumeratesThroughDefaultLogAttributes()
         {
-            var attributes = default(LogAttributes).ToList();
+            var attributes = default(LogAttributes<object?>).ToList();
 
             Assert.NotNull(attributes);
             attributes.Should().BeEmpty();
@@ -234,7 +258,7 @@ public class LogAttributesTests
                 { "baz", true }
             };
 
-            var attributes = new LogAttributes(state, innerScope, outerScope);
+            var attributes = new LogAttributes<Dictionary<string, object>>(state, innerScope, outerScope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -263,7 +287,7 @@ public class LogAttributesTests
                 { "baz", true }
             };
 
-            var attributes = new LogAttributes(state, innerScope, outerScope);
+            var attributes = new LogAttributes<DictionaryWithOverriddenToStringMethod>(state, innerScope, outerScope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -283,7 +307,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(state);
+            var attributes = new LogAttributes<Dictionary<string, object>>(state);
 
             attributes.ToString().Should().Be("""
                 {
@@ -301,7 +325,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(state);
+            var attributes = new LogAttributes<DictionaryWithOverriddenToStringMethod>(state);
 
             attributes.ToString().Should().Be("""
                 {
@@ -315,7 +339,7 @@ public class LogAttributesTests
         {
             var state = new List<object> { "abc", 123 };
 
-            var attributes = new LogAttributes(state);
+            var attributes = new LogAttributes<List<object>>(state);
 
             attributes.ToString().Should().Be("""
                 {
@@ -329,7 +353,7 @@ public class LogAttributesTests
         {
             var state = new ListWithOverriddenToStringMethod("Hello world!") { "abc", 123 };
 
-            var attributes = new LogAttributes(state);
+            var attributes = new LogAttributes<ListWithOverriddenToStringMethod>(state);
 
             attributes.ToString().Should().Be("""
                 {
@@ -343,7 +367,7 @@ public class LogAttributesTests
         {
             var state = 123.45M;
 
-            var attributes = new LogAttributes(state);
+            var attributes = new LogAttributes<decimal>(state);
 
             attributes.ToString().Should().Be("""
                 {
@@ -361,7 +385,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(null, scope);
+            var attributes = new LogAttributes<object?>(null, scope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -379,7 +403,7 @@ public class LogAttributesTests
                 { "bar", 123 }
             };
 
-            var attributes = new LogAttributes(null, scope);
+            var attributes = new LogAttributes<object?>(null, scope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -393,7 +417,7 @@ public class LogAttributesTests
         {
             var scope = new List<object> { "abc", 123 };
 
-            var attributes = new LogAttributes(null, scope);
+            var attributes = new LogAttributes<object?>(null, scope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -407,7 +431,7 @@ public class LogAttributesTests
         {
             var scope = new ListWithOverriddenToStringMethod("Hello world!") { "abc", 123 };
 
-            var attributes = new LogAttributes(null, scope);
+            var attributes = new LogAttributes<object?>(null, scope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -421,7 +445,7 @@ public class LogAttributesTests
         {
             var innerScope = 123.45M;
 
-            var attributes = new LogAttributes(null, innerScope);
+            var attributes = new LogAttributes<object?>(null, innerScope);
 
             attributes.ToString().Should().Be("""
                 {
@@ -433,7 +457,7 @@ public class LogAttributesTests
         [Fact]
         public void WorksGivenNeitherStateNorScope()
         {
-            var attributes = new LogAttributes(null, (ILoggerScope?)null);
+            var attributes = new LogAttributes<object?>(null, (ILoggerScope?)null);
 
             var str = attributes.ToString();
 
@@ -443,7 +467,7 @@ public class LogAttributesTests
         [Fact]
         public void WorksGivenDefaultLogAttributes()
         {
-            var attributes = default(LogAttributes);
+            var attributes = default(LogAttributes<object>);
 
             var str = attributes.ToString();
 

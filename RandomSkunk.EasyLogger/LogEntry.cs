@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
-
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace RandomSkunk.Logging;
@@ -11,214 +10,157 @@ namespace RandomSkunk.Logging;
 /// <summary>
 /// Defines a log event.
 /// </summary>
+/// <typeparam name="TState">The type of the object to be written.</typeparam>
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public readonly struct LogEntry
+public readonly struct LogEntry<TState> : ILogEntry
 {
     private readonly LogLevel _logLevel;
     private readonly EventId _eventId;
-    private readonly Func<string> _getMessage;
-    private readonly LogAttributes _attributes;
     private readonly Exception? _exception;
+    private readonly Func<TState, Exception?, string>? _formatter;
+    private readonly LogAttributes<TState> _attributes;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LogEntry"/> struct.
+    /// Initializes a new instance of the <see cref="LogEntry{TState}"/> struct.
     /// </summary>
-    /// <param name="logLevel">The log level.</param>
-    /// <param name="eventId">The Id of the log entry.</param>
-    /// <param name="getMessage">The function that gets the message of the log entry.</param>
+    /// <param name="logLevel">Entry will be written on this level.</param>
+    /// <param name="eventId">Id of the event.</param>
+    /// <param name="exception">The exception related to this entry.</param>
+    /// <param name="formatter">Function to create a <see cref="string"/> message of the <c>state</c> and <c>exception</c>.</param>
     /// <param name="attributes">A collection of key/value pairs that describe the state and scope of the log entry.</param>
-    /// <param name="exception">The exception related to the log entry.</param>
-    /// <exception cref="ArgumentNullException">If <paramref name="getMessage"/> is <see langword="null"/>.</exception>
     public LogEntry(
         LogLevel logLevel,
-        EventId eventId,
-        Func<string> getMessage,
-        LogAttributes attributes,
-        Exception? exception)
+        in EventId eventId,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter,
+        in LogAttributes<TState> attributes)
     {
-        ThrowIfNull(getMessage);
+        ArgumentNullException.ThrowIfNull(formatter);
 
         _logLevel = logLevel;
         _eventId = eventId;
-        _getMessage = getMessage;
-        _attributes = attributes;
         _exception = exception;
+        _formatter = formatter;
+        _attributes = attributes;
     }
 
-    /// <summary>
-    /// Gets the log level.
-    /// </summary>
+    /// <inheritdoc/>
     public LogLevel LogLevel => _logLevel;
 
-    /// <summary>
-    /// Gets the log event ID.
-    /// </summary>
+    /// <inheritdoc/>
     public EventId EventId => _eventId;
 
-    /// <summary>
-    /// Gets the function that gets the log message.
-    /// </summary>
-    public Func<string> GetMessage => _getMessage;
+    /// <inheritdoc/>
+    public string Message => _formatter?.Invoke(_attributes.State, _exception)!;
 
-    /// <summary>
-    /// Gets the collection of key/value pairs derived from the state and scope of the log.
-    /// </summary>
-    public LogAttributes Attributes => _attributes;
-
-    /// <summary>
-    /// Gets the log exception.
-    /// </summary>
+    /// <inheritdoc/>
     public Exception? Exception => _exception;
 
     /// <summary>
-    /// Gets the state.
+    /// Gets a collection of key/value pairs derived from the state and scope of the log entry.
     /// </summary>
-    public object? State => _attributes.State;
+    public LogAttributes<TState> Attributes => _attributes;
+
+    /// <inheritdoc/>
+    IEnumerable<KeyValuePair<string, object>> ILogEntry.Attributes => Attributes;
 
     /// <summary>
-    /// A collection of objects that represent a logger's current scope at the time of the log. The first object in the
-    /// collection represents the logger's current scope, the second object represents its parent scope, the third represents its
-    /// grandparent scope, and so on.
+    /// Gets the log entry state.
     /// </summary>
-    public IEnumerable<object> Scope
-    {
-        get
-        {
-            for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
-                yield return scope.State;
-        }
-    }
+    public TState State => _attributes.State;
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
-    /// </summary>
+    /// <inheritdoc/>
+    object? ILogEntry.State => State;
+
+    /// <inheritdoc/>
+    public ScopeCollection Scope => new(_attributes.Scope);
+
+    /// <inheritdoc/>
     public bool IsTrace() => HasLogLevel(LogLevel.Trace);
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Debug"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDebug() => HasLogLevel(LogLevel.Debug);
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Information"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsInformation() => HasLogLevel(LogLevel.Information);
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Warning"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsWarning() => HasLogLevel(LogLevel.Warning);
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Error"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsError() => HasLogLevel(LogLevel.Error);
 
-    /// <summary>
-    /// Whether the log entry was made at <see cref="LogLevel.Trace"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsCritical() => HasLogLevel(LogLevel.Critical);
 
-    /// <summary>
-    /// Whether the log entry has the specified level.
-    /// </summary>
-    /// <param name="expectedLogLevel">The level to check.</param>
+    /// <inheritdoc/>
     public bool HasLogLevel(LogLevel expectedLogLevel) => _logLevel == expectedLogLevel;
 
-    /// <summary>
-    /// Whether the log entry has a level that matches the specified predicate.
-    /// </summary>
-    /// <param name="logLevelPredicate">A function the returns whether the log entry's level is a match.</param>
+    /// <inheritdoc/>
     public bool HasLogLevel(Func<LogLevel, bool> logLevelPredicate)
     {
-        ThrowIfNull(logLevelPredicate);
+        ArgumentNullException.ThrowIfNull(logLevelPredicate);
 
         return logLevelPredicate(_logLevel);
     }
 
-    /// <summary>
-    /// Whether the log entry has the specified Id.
-    /// </summary>
-    /// <param name="eventId">The Id to check.</param>
+    /// <inheritdoc/>
     public bool HasEventId(EventId eventId) => _eventId == eventId;
 
-    /// <summary>
-    /// Whether the log entry has an Id that matches the specified predicate.
-    /// </summary>
-    /// <param name="eventIdPredicate">A function that determines whether the log entry's Id is a match.</param>
+    /// <inheritdoc/>
     public bool HasEventId(Func<EventId, bool> eventIdPredicate)
     {
-        ThrowIfNull(eventIdPredicate);
+        ArgumentNullException.ThrowIfNull(eventIdPredicate);
 
         return eventIdPredicate(_eventId);
     }
 
-    /// <summary>
-    /// Whether the log entry has the specified message.
-    /// </summary>
-    /// <param name="expectedMessage">The message to check.</param>
+    /// <inheritdoc/>
     public bool HasMessage(string expectedMessage)
     {
-        ThrowIfNull(expectedMessage);
+        ArgumentNullException.ThrowIfNull(expectedMessage);
 
-        return _getMessage is not null && string.Equals(_getMessage(), expectedMessage);
+        return Message is string message && string.Equals(message, expectedMessage);
     }
 
-    /// <summary>
-    /// Whether the log entry has the specified message.
-    /// </summary>
-    /// <param name="expectedMessage">The message to check.</param>
-    /// <param name="stringComparison">One of the enumeration values that specifies the rules for the comparison.</param>
+    /// <inheritdoc/>
     public bool HasMessage(string expectedMessage, StringComparison stringComparison)
     {
-        ThrowIfNull(expectedMessage);
+        ArgumentNullException.ThrowIfNull(expectedMessage);
 
-        return _getMessage is not null && string.Equals(_getMessage(), expectedMessage, stringComparison);
+        return Message is string message && string.Equals(message, expectedMessage, stringComparison);
     }
 
-    /// <summary>
-    /// Whether the log entry has a message that matches the specified predicate.
-    /// </summary>
-    /// <param name="messagePredicate">A function that determines whether the log entry's message is a match.</param>
+    /// <inheritdoc/>
     public bool HasMessage(Func<string, bool> messagePredicate)
     {
-        ThrowIfNull(messagePredicate);
+        ArgumentNullException.ThrowIfNull(messagePredicate);
 
-        return _getMessage is not null && messagePredicate(_getMessage());
+        return Message is string message && messagePredicate(message);
     }
 
-    /// <summary>
-    /// Whether the log entry has a message that matches the specified regular expression.
-    /// </summary>
-    /// <param name="regexPattern">The regular expression pattern to match.</param>
+    /// <inheritdoc/>
     public bool HasMessageMatching([StringSyntax(nameof(Regex))] string regexPattern)
     {
-        ThrowIfNull(regexPattern);
+        ArgumentNullException.ThrowIfNull(regexPattern);
 
-        return _getMessage is not null && Regex.IsMatch(_getMessage(), regexPattern);
+        return Message is string message && Regex.IsMatch(message, regexPattern);
     }
 
-    /// <summary>
-    /// Whether the log entry has a message that matches the specified regular expression.
-    /// </summary>
-    /// <param name="regexPattern">The regular expression pattern to match.</param>
-    /// <param name="regexOptions">A bitwise combination of the enumeration values that provide options for matching.</param>
+    /// <inheritdoc/>
     public bool HasMessageMatching(
         [StringSyntax(nameof(Regex))] string regexPattern,
         RegexOptions regexOptions)
     {
-        ThrowIfNull(regexPattern);
+        ArgumentNullException.ThrowIfNull(regexPattern);
 
-        return _getMessage is not null && Regex.IsMatch(_getMessage(), regexPattern, regexOptions);
+        return Message is string message && Regex.IsMatch(message, regexPattern, regexOptions);
     }
 
-    /// <summary>
-    /// Whether the log entry has an attribute with the specified key.
-    /// </summary>
-    /// <param name="key">The key to match.</param>
+    /// <inheritdoc/>
     public bool HasAttribute(string key)
     {
-        ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(key);
 
         foreach (var attribute in _attributes)
         {
@@ -229,15 +171,11 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry has an attribute with the specified key and value.
-    /// </summary>
-    /// <param name="key">The key to match.</param>
-    /// <param name="value">The value to match.</param>
+    /// <inheritdoc/>
     public bool HasAttribute(string key, object value)
     {
-        ThrowIfNull(key);
-        ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         foreach (var attribute in _attributes)
         {
@@ -248,17 +186,12 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry has an attribute with the specified key and value.
-    /// </summary>
-    /// <typeparam name="T">The expected type of the value.</typeparam>
-    /// <param name="key">The key to match.</param>
-    /// <param name="value">The value to match.</param>
+    /// <inheritdoc/>
     public bool HasAttribute<T>(string key, T value)
         where T : notnull
     {
-        ThrowIfNull(key);
-        ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         foreach (var attribute in _attributes)
         {
@@ -269,15 +202,11 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry has an attribute with the specified key and a value that matches the specified predicate.
-    /// </summary>
-    /// <param name="key">The key to match.</param>
-    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key is a match.</param>
+    /// <inheritdoc/>
     public bool HasAttribute(string key, Func<object, bool> valuePredicate)
     {
-        ThrowIfNull(key);
-        ThrowIfNull(valuePredicate);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(valuePredicate);
 
         foreach (var attribute in _attributes)
         {
@@ -288,17 +217,12 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry has an attribute with the specified key and a value that matches the specified predicate.
-    /// </summary>
-    /// <typeparam name="T">The expected type of the value.</typeparam>
-    /// <param name="key">The key to match.</param>
-    /// <param name="valuePredicate">A function the returns whether the value retrieved by the key is a match.</param>
+    /// <inheritdoc/>
     public bool HasAttribute<T>(string key, Func<T, bool> valuePredicate)
         where T : notnull
     {
-        ThrowIfNull(key);
-        ThrowIfNull(valuePredicate);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(valuePredicate);
 
         foreach (var attribute in _attributes)
         {
@@ -309,20 +233,13 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry was made without a state.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasNoState() => _attributes.State is null;
 
-    /// <summary>
-    /// Whether the log entry was made with any state.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasState() => _attributes.State is not null;
 
-    /// <summary>
-    /// Whether the log entry was made with the specified state.
-    /// </summary>
-    /// <param name="expectedState">The expected state.</param>
+    /// <inheritdoc/>
     public bool HasState(object? expectedState)
     {
         if (expectedState is null)
@@ -331,56 +248,38 @@ public readonly struct LogEntry
         return Equals(_attributes.State, expectedState);
     }
 
-    /// <summary>
-    /// Whether the log entry was made with the specified state.
-    /// </summary>
-    /// <typeparam name="TState">The type of the expected state.</typeparam>
-    /// <param name="expectedState">The expected state.</param>
-    public bool HasState<TState>(TState? expectedState)
+    /// <inheritdoc/>
+    public bool HasState<T>(T? expectedState)
     {
         if (expectedState is null)
             return _attributes.State is null;
 
-        return _attributes.State is TState state && Equals(state, expectedState);
+        return _attributes.State is T state && Equals(state, expectedState);
     }
 
-    /// <summary>
-    /// Whether the log entry was made with a state that matches the specified predicate.
-    /// </summary>
-    /// <param name="statePredicate">A function that determines whether the log entry's state is a match.</param>
+    /// <inheritdoc/>
     public bool HasState(Func<object?, bool> statePredicate)
     {
-        ThrowIfNull(statePredicate);
+        ArgumentNullException.ThrowIfNull(statePredicate);
 
         return statePredicate(_attributes.State);
     }
 
-    /// <summary>
-    /// Whether the log entry was made with a state that matches the specified predicate.
-    /// </summary>
-    /// <typeparam name="TState">The expectetd type of the state.</typeparam>
-    /// <param name="statePredicate">A function that determines whether the log entry's state is a match.</param>
-    public bool HasState<TState>(Func<TState, bool> statePredicate)
+    /// <inheritdoc/>
+    public bool HasState<T>(Func<T, bool> statePredicate)
     {
-        ThrowIfNull(statePredicate);
+        ArgumentNullException.ThrowIfNull(statePredicate);
 
-        return _attributes.State is TState state && statePredicate(state);
+        return _attributes.State is T state && statePredicate(state);
     }
 
-    /// <summary>
-    /// Whether the log entry was made without a logger scope.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasNoScope() => _attributes.Scope is null;
 
-    /// <summary>
-    /// Whether the log entry was made with a logger scope.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasScope() => _attributes.Scope is not null;
 
-    /// <summary>
-    /// Whether the log entry was made with the specified logger scope.
-    /// </summary>
-    /// <param name="expectedScope">The expected logger scope.</param>
+    /// <inheritdoc/>
     public bool HasScope(object? expectedScope)
     {
         if (expectedScope is null)
@@ -395,32 +294,25 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry was made with the specified logger scope.
-    /// </summary>
-    /// <typeparam name="TState">The type of the expected logger scope.</typeparam>
-    /// <param name="expectedScope">The expected logger scope.</param>
-    public bool HasScope<TState>(TState? expectedScope)
+    /// <inheritdoc/>
+    public bool HasScope<T>(T? expectedScope)
     {
         if (expectedScope is null)
             return _attributes.Scope is null;
 
         for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
-            if (scope.State is TState state && Equals(state, expectedScope))
+            if (scope.State is T state && Equals(state, expectedScope))
                 return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry was made with a logger scope that matches the specified predicate.
-    /// </summary>
-    /// <param name="scopePredicate">A function that determines whether the logger scope is a match.</param>
+    /// <inheritdoc/>
     public bool HasScope(Func<object, bool> scopePredicate)
     {
-        ThrowIfNull(scopePredicate);
+        ArgumentNullException.ThrowIfNull(scopePredicate);
 
         for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
@@ -431,69 +323,48 @@ public readonly struct LogEntry
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry was made with a logger scope that matches the specified predicate.
-    /// </summary>
-    /// <typeparam name="TState">The expected type of the logger scope.</typeparam>
-    /// <param name="scopePredicate">A function that determines whether the logger scope is a match.</param>
-    public bool HasScope<TState>(Func<TState, bool> scopePredicate)
-        where TState : notnull
+    /// <inheritdoc/>
+    public bool HasScope<T>(Func<T, bool> scopePredicate)
+        where T : notnull
     {
-        ThrowIfNull(scopePredicate);
+        ArgumentNullException.ThrowIfNull(scopePredicate);
 
         for (var scope = _attributes.Scope; scope is not null; scope = scope.ParentScope)
         {
-            if (scope.State is TState state && scopePredicate(state))
+            if (scope.State is T state && scopePredicate(state))
                 return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Whether the log entry was made without an exception.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasNoException() => _exception is null;
 
-    /// <summary>
-    /// Whether the log entry was made with any exception.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasException() => _exception is not null;
 
-    /// <summary>
-    /// Whether the log entry was made with an exception of type <typeparamref name="TException"/>.
-    /// </summary>
-    /// <typeparam name="TException">The expected type of exception.</typeparam>
+    /// <inheritdoc/>
     public bool HasException<TException>()
         where TException : Exception => _exception is TException;
 
-    /// <summary>
-    /// Whether the log entry was made with the specified exception.
-    /// </summary>
-    /// <param name="expectedException">The exception to check (by reference).</param>
+    /// <inheritdoc/>
     public bool HasException(Exception? expectedException) =>
         ReferenceEquals(_exception, expectedException);
 
-    /// <summary>
-    /// Whether the log entry has an exception that matches the specified predicate.
-    /// </summary>
-    /// <param name="exceptionPredicate">A function that determines whether the log entry's exception is a match.</param>
+    /// <inheritdoc/>
     public bool HasException(Func<Exception?, bool> exceptionPredicate)
     {
-        ThrowIfNull(exceptionPredicate);
+        ArgumentNullException.ThrowIfNull(exceptionPredicate);
 
         return exceptionPredicate(_exception);
     }
 
-    /// <summary>
-    /// Whether the log entry has an exception of type <typeparamref name="TException"/> that matches the specified predicate.
-    /// </summary>
-    /// <typeparam name="TException">The expected type of exception.</typeparam>
-    /// <param name="exceptionPredicate">A function that determines whether the log entry's exception is a match.</param>
+    /// <inheritdoc/>
     public bool HasException<TException>(Func<TException, bool> exceptionPredicate)
         where TException : Exception
     {
-        ThrowIfNull(exceptionPredicate);
+        ArgumentNullException.ThrowIfNull(exceptionPredicate);
 
         return _exception is TException tException && exceptionPredicate(tException);
     }
@@ -505,14 +376,14 @@ public readonly struct LogEntry
     public override string ToString()
     {
         var sb = StringBuilderPool.Get();
-        Append(sb, _logLevel, _eventId, _getMessage(), _attributes.State, _attributes.Scope, _exception);
+        Append(sb, _logLevel, _eventId, Message, _attributes.State, _attributes.Scope, _exception);
         return sb.ReturnToPool();
     }
 
     private string GetDebuggerDisplay()
     {
         var sb = new StringBuilder();
-        Append(sb, _logLevel, _eventId, _getMessage(), _attributes.State, _attributes.Scope, _exception);
+        Append(sb, _logLevel, _eventId, Message, _attributes.State, _attributes.Scope, _exception);
         return sb.ToString();
     }
 

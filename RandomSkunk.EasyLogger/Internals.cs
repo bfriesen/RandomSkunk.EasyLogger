@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -109,7 +110,8 @@ internal static class TypeExtensions
             type,
             t =>
             {
-                var toStringMethod = t.GetMethod(nameof(ToString), _publicInstance, null, Type.EmptyTypes, null)!;
+                var toStringMethod = t.GetMethod(nameof(ToString), _publicInstance, null, Type.EmptyTypes, null);
+                Debug.Assert(toStringMethod != null, "Type.GetMethod returned null for ToString method.");
                 return toStringMethod.DeclaringType != _objectType;
             });
 }

@@ -3,30 +3,30 @@ using Microsoft.Extensions.Logging;
 
 namespace RandomSkunk.Logging.Tests;
 
-public class EasyLoggerTests
+public class HighPerformanceLoggerTests
 {
     public class Identity
     {
         [Fact]
-        public void EasyLoggerImplementsILoggerInterface()
+        public void HighPerformanceLoggerImplementsILoggerInterface()
         {
-            EasyLogger logger = new ConcreteEasyLogger();
+            HighPerformanceLogger logger = new ConcreteHighPerformanceLogger();
 
             logger.Should().BeAssignableTo<ILogger>();
         }
 
         [Fact]
-        public void EasyLoggerOfTCategoryNameInheritsFromEasyLogger()
+        public void HighPerformanceLoggerOfTCategoryNameInheritsFromHighPerformanceLogger()
         {
-            EasyLogger<Identity> logger = new ConcreteEasyLogger<Identity>();
+            HighPerformanceLogger<Identity> logger = new ConcreteHighPerformanceLogger<Identity>();
 
-            logger.Should().BeAssignableTo<EasyLogger>();
+            logger.Should().BeAssignableTo<HighPerformanceLogger>();
         }
 
         [Fact]
-        public void EasyLoggerOfTCategoryNameImplementsILoggerOfTCategoryName()
+        public void HighPerformanceLoggerOfTCategoryNameImplementsILoggerOfTCategoryName()
         {
-            EasyLogger<Identity> logger = new ConcreteEasyLogger<Identity>();
+            HighPerformanceLogger<Identity> logger = new ConcreteHighPerformanceLogger<Identity>();
 
             logger.Should().BeAssignableTo<ILogger<Identity>>();
         }
@@ -37,7 +37,7 @@ public class EasyLoggerTests
         [Fact]
         public void CallsWriteLogEntryWhenIsEnabledIsTrue()
         {
-            var logger = new CapturingEasyLogger();
+            var logger = new CapturingHighPerformanceLogger();
 
             LogLevel logLevel = LogLevel.Information;
             EventId eventId = 123;
@@ -78,7 +78,7 @@ public class EasyLoggerTests
         [Fact]
         public void DoesNotCallWriteLogEntryWhenIsEnabledIsFalse()
         {
-            var logger = new CapturingEasyLogger();
+            var logger = new CapturingHighPerformanceLogger();
 
             LogLevel logLevel = LogLevel.Trace;
             EventId eventId = 123;
@@ -107,7 +107,7 @@ public class EasyLoggerTests
         [Fact]
         public void CapturesCurrentScopeWhenItExists()
         {
-            var logger = new CapturingEasyLogger();
+            var logger = new CapturingHighPerformanceLogger();
 
             LogLevel logLevel = LogLevel.Information;
             EventId eventId = 123;
@@ -141,7 +141,7 @@ public class EasyLoggerTests
         [Fact]
         public void GracefullyHandlesNullStateValue()
         {
-            var logger = new CapturingEasyLogger();
+            var logger = new CapturingHighPerformanceLogger();
 
             LogLevel logLevel = LogLevel.Information;
             EventId eventId = 123;
@@ -178,14 +178,14 @@ public class EasyLoggerTests
             formatterCapturedException.Should().BeSameAs(exception);
         }
 
-        private class CapturingEasyLogger : EasyLogger, ILogger
+        private class CapturingHighPerformanceLogger : HighPerformanceLogger, ILogger
         {
             public ILogEntry? CapturedLogEntry { get; set; }
 
-            public override void Write(ILogEntry logEntry)
+            public override void Write<TState>(in LogEntry<TState> logEntry)
             {
                 if (CapturedLogEntry is not null)
-                    throw new InvalidOperationException("CapturingEasyLogger must not be used to log more than once.");
+                    throw new InvalidOperationException("CapturingHighPerformanceLogger must not be used to log more than once.");
 
                 CapturedLogEntry = logEntry;
             }
